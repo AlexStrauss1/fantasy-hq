@@ -71,6 +71,10 @@ th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
 th.pin{z-index:3}
 .pin2{left:52px;box-shadow:6px 0 8px -6px rgba(0,0,0,.35)}
 tbody tr:hover .pin{background:var(--panel2)}
+table.compact th,table.compact td{padding:8px 9px}
+table.compact td.pin2,table.compact th.pin2{max-width:210px;overflow:hidden;text-overflow:ellipsis}
+tr.mine td{background:color-mix(in srgb,var(--accent) 8%,var(--panel))}
+tr.mine:hover td{background:color-mix(in srgb,var(--accent) 12%,var(--panel2))}
 tr:last-child td{border-bottom:0}
 tbody tr:hover{background:var(--panel2)}
 .chip{display:inline-block;padding:2px 8px;border-radius:99px;background:var(--chip);font-size:11px;font-weight:600;color:var(--muted)}
@@ -627,16 +631,22 @@ const rk1=x=>x==null?'—':(Math.round(x*10)/10).toString();
 // [key, header, numeric, cell renderer]
 const PCOLS=[
   ['rk','Rk',1,r=>`<b>${r.rk}</b>`],['name','Player',0,r=>`<b>${esc(r.name)}</b>${injTag(r.p)}`],['pos','Pos',0,r=>posTag(r.pos)],['nfl','NFL',0,r=>r.nfl],['opp','Opp',0,r=>esc(r.opp)],
-  ['owner','Fantasy team',0,r=>`<span class="${r.p.teamId?'':'pos-good'}">${esc(r.owner)}</span>`],
-  ['avgRk','Avg rank',1,r=>r.avgRk==null?'—':`<b>${r.pos==='D/ST'?'DST':r.pos}${rk1(r.avgRk)}</b>`],['nSites','# Sites',1,r=>r.nSites??'—'],
-  ['expert','ESPN rank',1,r=>rk1(r.expert)],['fpEcr','FantasyPros rank',1,r=>rk1(r.fpEcr)],['dsWk','Draft Sharks rank',1,r=>rk1(r.dsWk)],
-  ['fpRos','FantasyPros ROS',1,r=>rk1(r.fpRos)],['dsRos','Draft Sharks ROS',1,r=>rk1(r.dsRos)],['projRk','Projection rank',1,r=>rk1(r.projRk)],
+  ['owner','Team',0,r=>`<span class="${r.p.teamId?'':'pos-good'}">${esc(r.owner)}</span>`],
+  ['avgRk','Avg rk',1,r=>r.avgRk==null?'—':`<b>${r.pos==='D/ST'?'DST':r.pos}${rk1(r.avgRk)}</b>`],['nSites','#',1,r=>r.nSites??'—'],
+  ['expert','ESPN rk',1,r=>rk1(r.expert)],['fpEcr','FP rk',1,r=>rk1(r.fpEcr)],['dsWk','DS rk',1,r=>rk1(r.dsWk)],
+  ['fpRos','FP ROS',1,r=>rk1(r.fpRos)],['dsRos','DS ROS',1,r=>rk1(r.dsRos)],['projRk','Proj rk',1,r=>rk1(r.projRk)],
   ['cons','Proj pts',1,r=>`<b>${f1(r.cons)}</b>`],['range','Low–High',0,r=>`<span class="meta">${r.range}</span>`],
-  ['espn','ESPN',1,r=>f1(r.espn)],['slp','Sleeper',1,r=>f1(r.slp)],['cbs','CBS',1,r=>f1(r.cbs)],['fp','FPros',1,r=>f1(r.fp)],['ds','Draft Sharks',1,r=>f1(r.ds)],['dsFC','DS floor–ceiling',0,r=>r.dsFC?`<span class="meta">${r.dsFC}</span>`:'—'],
-  ['fpGrade','FP grade',0,r=>r.fpGrade&&r.fpGrade!=='NA'?gradeTag(r.fpGrade):''],
-  ['rosAvg','ROS/wk',1,r=>f1(r.rosAvg)],['dsRosPts','Draft Sharks ROS/wk',1,r=>f1(r.dsRosPts)],['rosTotal','ROS total',1,r=>f1(r.rosTotal)],['seasonPts','Season pts',1,r=>f1(r.seasonPts)],['ppg','PPG',1,r=>f1(r.ppg)],
-  ['tv','Trade value',1,r=>r.tv?r.tv.toLocaleString():'—'],['own','% Own',1,r=>f1(r.own)],
-  ['ownChg','Own +/-',1,r=>`<span class="${r.ownChg>0?'pos-good':r.ownChg<0?'neg':''}">${r.ownChg?sgn(r.ownChg):'—'}</span>`],['adds','Sleeper adds',1,r=>r.adds?r.adds.toLocaleString():'—']];
+  ['espn','ESPN',1,r=>f1(r.espn)],['slp','SLP',1,r=>f1(r.slp)],['cbs','CBS',1,r=>f1(r.cbs)],['fp','FP',1,r=>f1(r.fp)],['ds','DS',1,r=>f1(r.ds)],['dsFC','DS flr–ceil',0,r=>r.dsFC?`<span class="meta">${r.dsFC}</span>`:'—'],
+  ['fpGrade','FP gr',0,r=>r.fpGrade&&r.fpGrade!=='NA'?gradeTag(r.fpGrade):''],
+  ['rosAvg','ROS/wk',1,r=>f1(r.rosAvg)],['dsRosPts','DS ROS/wk',1,r=>f1(r.dsRosPts)],['rosTotal','ROS total',1,r=>f1(r.rosTotal)],['seasonPts','Season',1,r=>f1(r.seasonPts)],['ppg','PPG',1,r=>f1(r.ppg)],
+  ['tv','Value',1,r=>r.tv?r.tv.toLocaleString():'—'],['own','% Own',1,r=>f1(r.own)],
+  ['ownChg','Own ±',1,r=>`<span class="${r.ownChg>0?'pos-good':r.ownChg<0?'neg':''}">${r.ownChg?sgn(r.ownChg):'—'}</span>`],['adds','Adds',1,r=>r.adds?r.adds.toLocaleString():'—']];
+const COL_TIPS={avgRk:'Average of the sites\' position ranks',nSites:'How many sites rank the player',expert:'ESPN analysts\' average position rank',
+  fpEcr:'FantasyPros expert consensus rank',dsWk:'Draft Sharks rank',projRk:'Rank by average projected points',fpRos:'FantasyPros rest-of-season rank',
+  dsRos:'Draft Sharks rest-of-season rank',cons:'Average projected points across sites (injury-adjusted)',range:'Lowest–highest site projection',slp:'Sleeper projection',
+  fp:'FantasyPros projection',ds:'Draft Sharks projection',dsFC:'Draft Sharks floor–ceiling projection',fpGrade:'FantasyPros start/sit grade',
+  rosAvg:'Rest-of-season projected points per week',dsRosPts:'Draft Sharks rest-of-season points per week',tv:'FantasyCalc trade value',
+  ownChg:'ESPN ownership change',adds:'Sleeper adds in the last 48 hours',owner:'Fantasy team'};
 const ASC_COLS=['expert','fpEcr','dsWk','fpRos','dsRos','projRk','avgRk'];
 function playerRows(){
   const w=S.projWeek, q=norm(S.search), ros=S.rankBy==='ros', multi=S.posTab==='ALL'||S.posTab==='FLEX';
@@ -660,14 +670,14 @@ function playerRows(){
 function playerCols(){
   // show the rank columns that match the ranking mode
   const hide=S.rankBy==='ros'?['expert','fpEcr','dsWk','fpGrade','dsFC']:['fpRos','dsRos','dsRosPts'];
-  return PCOLS.filter(c=>!hide.includes(c[0])).map(c=>c[0]==='cons'?[c[0],`Avg proj wk ${S.projWeek}`,c[2],c[3]]:c);
+  return PCOLS.filter(c=>!hide.includes(c[0])).map(c=>c[0]==='cons'?[c[0],`Avg proj`,c[2],c[3]]:c);
 }
 function vPlayers(){
   const rows=playerRows(), cols=playerCols(), mx=Math.max(1,...rows.map(r=>r.cons)), ros=S.rankBy==='ros', live=S.projWeek===S.week;
   const how=ros?'FantasyPros and Draft Sharks rest-of-season rankings and FantasyCalc trade-market rank'
     :live?'ESPN analysts, the FantasyPros expert consensus and Draft Sharks':null;
   return `<h2>Player Rankings</h2><p class="sub">${how?`Ranked mostly by the <b>average of the sites' own rankings</b> (${how}), with our projected-points rank counted at half weight.`
-    :`Sites only publish rankings for the current week, so week ${S.projWeek} is ranked by projected points.`} "Avg rank" is the blended position rank and "Sites" is how many sites rank the player. Draft Sharks publishes its top 25 at each position, so a player other sites rank inside that range but Draft Sharks leaves out counts as just outside it. The All and FLEX tabs compare positions by what each rank is projected to score. Click a column to sort.</p>
+    :`Sites only publish rankings for the current week, so week ${S.projWeek} is ranked by projected points.`} "Avg rk" is the blended position rank and "#" is how many sites rank the player (hover any column header for its full name; FP = FantasyPros, DS = Draft Sharks, SLP = Sleeper). Draft Sharks publishes its top 25 at each position, so a player other sites rank inside that range but Draft Sharks leaves out counts as just outside it. The All and FLEX tabs compare positions by what each rank is projected to score. Click a column to sort.</p>
   <div class="tabs">${['ALL','QB','RB','WR','TE','FLEX','K','D/ST'].map(p=>`<button class="${S.posTab===p?'on':''}" onclick="S.posTab='${p}';S.sortKey=null;render()">${p}</button>`).join('')}</div>
   <div class="row" style="margin-bottom:12px">
     <input id="search" placeholder="Search player or team" style="max-width:240px" value="${esc(S.search)}" oninput="S.search=this.value;S._focus=1;render();S._focus=0">
@@ -675,8 +685,8 @@ function vPlayers(){
     <select onchange="S.rankBy=this.value;S.sortKey=null;render()"><option value="wk">Rank for this week</option><option value="ros" ${ros?'selected':''}>Rank for rest of season</option></select>
     ${ros?'':`<span class="meta">Week</span><select onchange="S.projWeek=+this.value;loadSleeper(S.projWeek);render()">${range(S.week,LAST_WEEK).map(x=>`<option ${x===S.projWeek?'selected':''}>${x}</option>`).join('')}</select>`}
     <div class="spacer"></div><button class="btn" onclick="exportCSV()">Download CSV</button></div>
-  <div class="tbl-wrap" style="max-height:72vh"><table><thead><tr>${cols.map(([k,l,n])=>`<th class="${n?'num':''}${k==='rk'||k==='name'?' pin'+(k==='name'?' pin2':''):''}" onclick="sortBy('${k}')">${l}${S.sortKey===k?(S.sortDir<0?' ▼':' ▲'):''}</th>`).join('')}</tr></thead><tbody>
-  ${rows.slice(0,400).map(r=>`<tr${r.p.teamId===S.my?' style="background:color-mix(in srgb,var(--accent) 7%,transparent)"':''}>${cols.map(([k,,n,cell])=>
+  <div class="tbl-wrap" style="max-height:72vh"><table class="compact"><thead><tr>${cols.map(([k,l,n])=>`<th title="${esc(COL_TIPS[k]||'')}" class="${n?'num':''}${k==='rk'||k==='name'?' pin'+(k==='name'?' pin2':''):''}" onclick="sortBy('${k}')">${l}${S.sortKey===k?(S.sortDir<0?' ▼':' ▲'):''}</th>`).join('')}</tr></thead><tbody>
+  ${rows.slice(0,400).map(r=>`<tr${r.p.teamId===S.my?' class="mine"':''}>${cols.map(([k,,n,cell])=>
     `<td class="${n?'num':''}${k==='rk'||k==='name'?' pin'+(k==='name'?' pin2':''):''}"${k==='cons'?` style="background:rgba(var(--heat),${(r.cons/mx*.22).toFixed(3)})"`:''}>${cell(r)}</td>`).join('')}</tr>`).join('')}
   </tbody></table></div>`;
 }
@@ -920,7 +930,7 @@ function vRos(){
   const pos=S.rosPos||'RB', list=rosRanked(pos).slice(0,pos==='ALL'?250:120), po=range(Math.max(S.week,S.regEnd+1),LAST_WEEK);
   return `<h2>Rest-of-Season Rankings</h2><p class="sub">Who matters from week ${S.week} through week ${LAST_WEEK}. Ranked mostly by the <b>average of the sites' rest-of-season rankings</b>: FantasyPros, Draft Sharks and FantasyCalc's trade market, with projected points (ESPN, Sleeper, CBS, FantasyPros and Draft Sharks, injury-adjusted) counted at half weight. "Playoffs" is the average projection for weeks ${po[0]}–${po[po.length-1]}. The All tab compares positions by what each rank is projected to score.</p>
   <div class="tabs">${['ALL','QB','RB','WR','TE','K','D/ST'].map(p=>`<button class="${pos===p?'on':''}" onclick="S.rosPos='${p}';render()">${p}</button>`).join('')}</div>
-  <div class="tbl-wrap" style="max-height:72vh"><table><thead><tr><th class="num">Rk</th><th>Player</th><th>Pos</th><th>NFL</th><th>Fantasy team</th><th class="num">ROS/wk</th><th class="num">Playoffs/wk</th><th class="num">ROS total</th><th class="num">Season PPG</th><th class="num">Avg rank</th><th class="num">FantasyPros ROS</th><th class="num">Draft Sharks ROS</th><th class="num">FantasyCalc market</th><th class="num">Projection rank</th><th>Outlook</th></tr></thead><tbody>
+  <div class="tbl-wrap" style="max-height:72vh"><table><thead><tr><th class="num">Rk</th><th>Player</th><th>Pos</th><th>NFL</th><th>Fantasy team</th><th class="num">ROS/wk</th><th class="num">Playoffs/wk</th><th class="num">ROS total</th><th class="num">Season PPG</th><th class="num" title="Average of the sites' rest-of-season position ranks">Avg rk</th><th class="num" title="FantasyPros rest-of-season rank">FP ROS</th><th class="num" title="Draft Sharks rest-of-season rank">DS ROS</th><th class="num" title="FantasyCalc trade-market rank">Market</th><th class="num" title="Rank by rest-of-season projected points">Proj rk</th><th>Outlook</th></tr></thead><tbody>
   ${list.map((p,i)=>{const d=p.rosAvg-p.ppg, pd=p.poAvg-p.rosAvg, I=S.inj.get(p.skey);
     const out=[];if(p.gp>=3&&d>=2)out.push('<span class="chip pos-good">Due to improve</span>');if(p.gp>=3&&d<=-2.5)out.push('<span class="chip neg">Likely to cool off</span>');
     if(pd>=1.5)out.push('<span class="chip pos-good">Strong playoff slate</span>');if(pd<=-1.5)out.push('<span class="chip neg">Tough playoff slate</span>');
