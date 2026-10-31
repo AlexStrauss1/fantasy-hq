@@ -7,13 +7,14 @@ Serves the web app and proxies the public data sources it combines:
   * CBS Sports (weekly projected stat lines)
   * FantasyPros expert consensus rankings + projections, via the open
     DynastyProcess data set (github.com/dynastyprocess/data, refreshed daily)
-  * Draft Sharks (weekly and rest-of-season rankings, top 25 per position)
+  * Draft Sharks (weekly and rest-of-season rankings + projected points, top 25 per position)
   * FantasyCalc (trade values built from real fantasy trades)
 
 Run:  python3 server.py   then open http://localhost:8765
 No third-party packages needed.
 """
 import csv
+import html
 import io
 import json
 import os
@@ -129,6 +130,23 @@ def draftsharks(fmt):
             h = fetch(f"https://www.draftsharks.com/{kind}/{fmt}/{slug}").decode("utf-8", "replace")
         except Exception:
             return out
+        # the rankings table carries rank, team and Draft Sharks' projected points for each player
+        for row in re.findall(r"<tbody[^>]*data-player-row[^>]*>.*?</tbody>", h, re.S):
+            name = re.search(r'data-player-name="([^"]+)"', row)
+            rank = re.search(r'rank-index">\s*<span>(\d+)', row)
+            team = re.search(r'player-details-group__team-name">\s*([A-Z]+)', row)
+            if not (name and rank):
+                continue
+            vals = {attr: num(v) for v, attr in re.findall(r'data-value="([^"]*)" data-attribute="([^"]+)"', row)}
+            nm = html.unescape(name.group(1))
+            out.append({"name": nm, "pos": DS_POS[slug], "rank": int(rank.group(1)),
+                        "team": NFL_TEAMS.get(nm) or (team.group(1) if team else ""),
+                        "pts": vals.get("weeklyPts", vals.get("rosWeeklyPts")),
+                        "floor": vals.get("weeklyFloorPts", vals.get("rosWeeklyFloorPts")),
+                        "ceiling": vals.get("weeklyCeilingPts", vals.get("rosWeeklyCeilingPts"))})
+        if out:
+            return out
+        # fallback: the structured list in the page (ranks only)
         for block in re.findall(r'<script type="application/ld\+json">(.*?)</script>', h, re.S):
             try:
                 data = json.loads(block)
