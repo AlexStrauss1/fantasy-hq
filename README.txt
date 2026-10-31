@@ -24,6 +24,7 @@ cookies stay in their own browser and are only passed through to ESPN.
 The free plan sleeps when unused, so the first visit can take ~30 seconds.
 
 DATA SOURCES
-ESPN (your league, projections, analyst ranks, injury news), Sleeper (projections,
+ESPN (your league, projections, analyst ranks, injury news), Draft Sharks (weekly and
+rest-of-season rankings), Sleeper (projections,
 injuries, trending adds), CBS Sports (projections, injury report), FantasyPros
 (expert consensus rankings, via the open DynastyProcess data set), FantasyCalc (trade values).

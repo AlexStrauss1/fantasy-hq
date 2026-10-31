@@ -7,6 +7,7 @@ Serves the web app and proxies the public data sources it combines:
   * CBS Sports (weekly projected stat lines)
   * FantasyPros expert consensus rankings + projections, via the open
     DynastyProcess data set (github.com/dynastyprocess/data, refreshed daily)
+  * Draft Sharks (weekly and rest-of-season rankings, top 25 per position)
   * FantasyCalc (trade values built from real fantasy trades)
 
 Run:  python3 server.py   then open http://localhost:8765
@@ -22,6 +23,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PORT = int(os.environ.get("PORT", "8765"))
@@ -101,6 +103,54 @@ def cbs(season, week):
             for k, v in zip(cols[1:], cells):
                 stats.setdefault(k, v)
             out.append({"name": m.group(1).strip(), "team": m.group(2), "pos": pos, "stats": stats})
+    return out
+
+
+NFL_TEAMS = {
+    "Arizona Cardinals": "ARI", "Atlanta Falcons": "ATL", "Baltimore Ravens": "BAL", "Buffalo Bills": "BUF",
+    "Carolina Panthers": "CAR", "Chicago Bears": "CHI", "Cincinnati Bengals": "CIN", "Cleveland Browns": "CLE",
+    "Dallas Cowboys": "DAL", "Denver Broncos": "DEN", "Detroit Lions": "DET", "Green Bay Packers": "GB",
+    "Houston Texans": "HOU", "Indianapolis Colts": "IND", "Jacksonville Jaguars": "JAX", "Kansas City Chiefs": "KC",
+    "Las Vegas Raiders": "LV", "Los Angeles Chargers": "LAC", "Los Angeles Rams": "LAR", "Miami Dolphins": "MIA",
+    "Minnesota Vikings": "MIN", "New England Patriots": "NE", "New Orleans Saints": "NO", "New York Giants": "NYG",
+    "New York Jets": "NYJ", "Philadelphia Eagles": "PHI", "Pittsburgh Steelers": "PIT", "San Francisco 49ers": "SF",
+    "Seattle Seahawks": "SEA", "Tampa Bay Buccaneers": "TB", "Tennessee Titans": "TEN", "Washington Commanders": "WSH",
+}
+DS_POS = {"qb": "QB", "rb": "RB", "wr": "WR", "te": "TE", "k": "K", "def": "D/ST"}
+
+
+def draftsharks(fmt):
+    """Draft Sharks weekly + rest-of-season rankings: the top 25 at each position that they publish openly."""
+    fmt = "ppr" if fmt == "ppr" else "half-ppr"  # Draft Sharks has no standard-scoring pages
+
+    def page(kind, slug):
+        out = []
+        try:
+            h = fetch(f"https://www.draftsharks.com/{kind}/{fmt}/{slug}").decode("utf-8", "replace")
+        except Exception:
+            return out
+        for block in re.findall(r'<script type="application/ld\+json">(.*?)</script>', h, re.S):
+            try:
+                data = json.loads(block)
+            except ValueError:
+                continue
+            nodes = data.get("@graph", [data]) if isinstance(data, dict) else data
+            for node in nodes:
+                if not isinstance(node, dict) or node.get("@type") != "ItemList":
+                    continue
+                for el in node.get("itemListElement", []):
+                    item = el.get("item") or {}
+                    name = item.get("name", "")
+                    team = name if slug == "def" else (item.get("affiliation") or {}).get("name", "")
+                    out.append({"name": name, "pos": DS_POS[slug], "team": NFL_TEAMS.get(team, ""), "rank": el.get("position")})
+        return out
+
+    jobs = [(kind, slug) for kind in ("weekly-rankings", "ros-rankings") for slug in DS_POS]
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        results = list(pool.map(lambda j: page(*j), jobs))
+    out = {"weekly": [], "ros": []}
+    for (kind, _), rows in zip(jobs, results):
+        out["weekly" if kind == "weekly-rankings" else "ros"].extend(rows)
     return out
 
 
@@ -232,6 +282,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(200, fetch(f"{SLEEPER}/v1/players/nfl/trending/add?lookback_hours=48&limit=200"))
             elif u.path == "/api/injuries":
                 self.send_json(200, injuries())
+            elif u.path == "/api/draftsharks":
+                self.send_json(200, draftsharks(q.get("fmt", "ppr")))
             elif u.path == "/api/fantasypros":
                 self.send_json(200, fantasypros())
             elif u.path == "/api/cbs":
