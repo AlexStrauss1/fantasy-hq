@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fantasy HQ</title>
+<style>
+:root{
+  --bg:#f4f6f9; --panel:#ffffff; --panel2:#eef1f5; --ink:#141a23; --muted:#5d6878; --line:#dde2ea;
+  --accent:#d6402b; --accent-ink:#fff; --good:#1a8f4c; --ok:#b07c00; --bad:#c2321f; --chip:#e7ebf1;
+  --heat:214,64,43;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e131a; --panel:#161d27; --panel2:#1d2632; --ink:#e8edf3; --muted:#93a0b2; --line:#283343;
+    --accent:#ff5a3c; --accent-ink:#fff; --good:#3cc47a; --ok:#e2b33c; --bad:#ff6b57; --chip:#222d3b;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e131a; --panel:#161d27; --panel2:#1d2632; --ink:#e8edf3; --muted:#93a0b2; --line:#283343;
+  --accent:#ff5a3c; --accent-ink:#fff; --good:#3cc47a; --ok:#e2b33c; --bad:#ff6b57; --chip:#222d3b;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif}
+header{background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+.top{display:flex;align-items:center;gap:16px;padding:12px 20px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:18px;letter-spacing:-.02em}
+.brand span{color:var(--accent)}
+.league{color:var(--muted);font-size:13px}
+.spacer{flex:1}
+nav{display:flex;gap:2px;padding:0 14px;overflow-x:auto}
+nav button{background:none;border:0;color:var(--muted);padding:10px 12px;font:600 13px inherit;font-family:inherit;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+nav button.on{color:var(--ink);border-color:var(--accent)}
+main{max-width:1280px;margin:0 auto;padding:20px 16px 60px}
+h2{font-size:20px;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:0 0 16px;font-size:13px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+button.btn,select,input{font:inherit;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:7px 10px}
+button.btn{cursor:pointer;font-weight:600}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px;font-weight:600}
+input{width:100%}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{position:sticky;top:0;background:var(--panel2);font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);cursor:pointer;user-select:none}
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--panel2)}
+.chip{display:inline-block;padding:1px 7px;border-radius:99px;background:var(--chip);font-size:11px;font-weight:700;color:var(--muted)}
+.pos{display:inline-block;min-width:34px;text-align:center;padding:1px 5px;border-radius:5px;font-size:11px;font-weight:800;color:#fff}
+.QB{background:#c2410c}.RB{background:#15803d}.WR{background:#1d4ed8}.TE{background:#a21caf}.K{background:#57534e}.DST{background:#334155}
+.grade{display:inline-block;width:30px;text-align:center;border-radius:6px;font-weight:800;padding:2px 0;font-size:12px}
+.gA{background:color-mix(in srgb,var(--good) 22%,transparent);color:var(--good)}
+.gB{background:color-mix(in srgb,var(--good) 12%,transparent);color:var(--good)}
+.gC{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.gD,.gF{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
+.pr-card{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:start}
+.rank{font-size:28px;font-weight:900;color:var(--accent);line-height:1}
+.rating{font-size:26px;font-weight:900;text-align:right;line-height:1}
+.rating small{display:block;font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.05em}
+.tname{font-weight:800;font-size:15px}
+.meta{color:var(--muted);font-size:12px}
+.bars{display:flex;gap:6px;margin:8px 0 6px;flex-wrap:wrap}
+.blurb{font-size:13px;color:var(--muted);margin-top:4px}
+.pos-good{color:var(--good)}.neg{color:var(--bad)}
+.inj{color:var(--bad);font-weight:700;font-size:11px;margin-left:4px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+.tabs button{border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:99px;padding:5px 12px;font:600 12px inherit;font-family:inherit;cursor:pointer}
+.tabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.notice{background:color-mix(in srgb,var(--ok) 14%,var(--panel));border:1px solid color-mix(in srgb,var(--ok) 40%,var(--line));border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px}
+.err{background:color-mix(in srgb,var(--bad) 12%,var(--panel));border-color:color-mix(in srgb,var(--bad) 40%,var(--line))}
+.loading{padding:60px;text-align:center;color:var(--muted)}
+.mu{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
+.mu .r{text-align:right}
+.pbar{height:8px;border-radius:99px;background:var(--chip);overflow:hidden;margin-top:6px}
+.pbar>div{height:100%;background:var(--accent)}
+.big{font-size:22px;font-weight:900}
+.pick{display:flex;flex-direction:column;gap:3px;max-height:320px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:6px;background:var(--panel2)}
+.pick label{display:flex;align-items:center;gap:8px;margin:0;color:var(--ink);font-weight:500;font-size:13px;padding:3px 4px;border-radius:5px;cursor:pointer}
+.pick label:hover{background:var(--panel)}
+.pick input{width:auto}
+.verdict{font-size:18px;font-weight:800;margin:4px 0}
+a{color:var(--accent)}
+.news{max-width:380px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.st{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11px;font-weight:700}
+.st-ACTIVE{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good)}
+.st-QUESTIONABLE{background:color-mix(in srgb,var(--ok) 20%,transparent);color:var(--ok)}
+.st-DOUBTFUL,.st-OUT,.st-SUSP,.st-IR{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
+details summary{cursor:pointer;color:var(--muted);font-weight:600}
+@media (max-width:640px){.pr-card{grid-template-columns:36px 1fr}.pr-card .rating{grid-column:2;text-align:left}.rank{font-size:22px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div class="brand">Fantasy<span>HQ</span></div>
+    <div class="league" id="leagueLabel">Not connected</div>
+    <div class="spacer"></div>
+    <div class="row"><span class="meta">My team</span><select id="myTeam"></select></div>
+    <button class="btn" onclick="go('settings')">League settings</button>
+  </div>
+  <nav id="nav"></nav>
+</header>
+<main id="main"><div class="loading">Loading…</div></main>
+
+<script>
+/* ---------- constants ---------- */
+const SLOT={0:'QB',1:'TQB',2:'RB',3:'RB/WR',4:'WR',5:'WR/TE',6:'TE',7:'OP',16:'D/ST',17:'K',20:'BE',21:'IR',23:'FLEX'};
+const POS={1:'QB',2:'RB',3:'WR',4:'TE',5:'K',16:'D/ST'};
+const POSLIST=['QB','RB','WR','TE','K','D/ST'];
+const START_ORDER=[0,2,4,6,17,16,3,5,23,7];
+const PRO={0:'FA',1:'ATL',2:'BUF',3:'CHI',4:'CIN',5:'CLE',6:'DAL',7:'DEN',8:'DET',9:'GB',10:'TEN',11:'IND',12:'KC',13:'LV',14:'LAR',15:'MIA',16:'MIN',17:'NE',18:'NO',19:'NYG',20:'NYJ',21:'PHI',22:'ARI',23:'PIT',24:'LAC',25:'SF',26:'SEA',27:'TB',28:'WSH',29:'CAR',30:'JAX',33:'BAL',34:'HOU'};
+const TEAM_ALIAS={WAS:'WSH',JAC:'JAX',LA:'LAR',OAK:'LV',LVR:'LV',SD:'LAC',GBP:'GB',KCC:'KC',NEP:'NE',NOS:'NO',SFO:'SF',TBB:'TB'};
+const normTeam=a=>TEAM_ALIAS[a]||a;
+const pkey=(pos,name,team)=>pos==='D/ST'||pos==='DEF'||pos==='DST'?'DEF|'+normTeam(team):pos+'|'+norm(name);
+const SOURCES=[['espn','ESPN'],['slp','Sleeper'],['cbs','CBS'],['fp','FPros']];
+const LAST_WEEK=17;
+const TABS=[['power','Power Rankings'],['startsit','Start / Sit'],['teams','Teams'],['proj','Weekly Projections'],['players','Player Rankings'],['injuries','Injury Report'],['pickups','Pickups'],['trade','Trade Analyzer'],['settings','Settings']];
+
+/* ---------- state ---------- */
+const DEFAULT_RULES={passYd:.04,passTd:4,int:-2,rushYd:.1,rushTd:6,rec:1,recYd:.1,recTd:6,fl:-2};
+const S={view:'power',season:2026,week:1,projWeek:1,teams:[],P:new Map(),src:{},status:{},sleeperIds:{},rules:{...DEFAULT_RULES},
+  fp:{wk:new Map(),ros:new Map()},trend:new Map(),tv:new Map(),inj:new Map(),SC:{},scoring:'ppr',
+  posTab:'ALL',avail:'all',sortKey:null,sortDir:-1,search:'',rankBy:'wk',demo:false,faab:null,schedule:[],
+  trade:{a:null,b:null,ga:new Set(),gb:new Set()},leagueName:''};
+const store={get(k,d){try{const v=localStorage.getItem('fhq_'+k);return v==null?d:JSON.parse(v)}catch{return d}},
+  set(k,v){try{localStorage.setItem('fhq_'+k,JSON.stringify(v))}catch{}}};
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const f1=n=>n==null||isNaN(n)?'—':(+n).toFixed(1);
+const sgn=n=>(n>0?'+':'')+f1(n);
+const range=(a,b)=>{const r=[];for(let i=a;i<=b;i++)r.push(i);return r};
+const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+const sd=a=>{const m=mean(a);return Math.sqrt(mean(a.map(x=>(x-m)**2)))||1};
+const z=(v,arr)=>(v-mean(arr))/sd(arr);
+const norm=s=>String(s||'').toLowerCase().replace(/[.'’\-]/g,'').replace(/\s+(jr|sr|ii|iii|iv|v)$/,'').replace(/\s+/g,' ').trim();
+const posCls=p=>p==='D/ST'?'DST':p;
+const injTag=p=>{const I=S.inj.get(p.skey);return I?`<span class="inj" title="${esc(I.injury)}">${INJ_LABEL[I.code]}</span>`:''};
+const posTag=p=>`<span class="pos ${posCls(p)}">${p}</span>`;
+function erf(x){const t=1/(1+.3275911*Math.abs(x));const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x);return x>=0?y:-y}
+const winProb=(a,b)=>.5*(1+erf((a-b)/28/Math.SQRT2));
+const gradeOf=pct=>pct>=.9?'A+':pct>=.75?'A':pct>=.6?'B':pct>=.4?'C':pct>=.2?'D':'F';
+const gradeTag=g=>`<span class="grade g${g[0]}">${g}</span>`;
+function seeded(seed){return()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646}}
+async function api(path,useAuth){
+  const h={};
+  if(useAuth){const s2=store.get('s2',''),sw=store.get('swid','');if(s2&&sw){h['X-ESPN-S2']=s2;h['X-ESPN-SWID']=sw}}
+  const r=await fetch(path,{headers:h});const j=await r.json().catch(()=>({error:'Bad response'}));
+  if(!r.ok)throw new Error(j.error||('HTTP '+r.status));return j;
+}
+
+/* ---------- parsing ---------- */
+function parsePlayer(pp){
+  const pl=pp.player||pp; const pos=POS[pl.defaultPositionId]; if(!pos)return null;
+  const yr=S.season, st={}; for(const s of pl.stats||[])st[s.id]=s;
+  const espnWk={}; for(const w of range(S.week,LAST_WEEK)){const s=st['11'+yr+w]; if(s)espnWk[w]=s.appliedTotal||0}
+  const season=st['00'+yr], seasonProj=st['10'+yr];
+  const rt=S.scoring==='std'?'STANDARD':'PPR', rk=((pl.rankings||{})[S.week]||[]).filter(r=>r.rankType===rt);
+  const cons=rk.find(r=>r.rankSourceId===0);
+  const nfl=PRO[pl.proTeamId]||'FA';
+  const skey=pkey(pos,pl.fullName,nfl);
+  const seasonPts=season?.appliedTotal||0, avg=season?.appliedAverage||0;
+  return {id:pl.id,name:pos==='D/ST'?pl.fullName:pl.fullName,pos,nfl,skey,slots:pl.eligibleSlots||[],
+    inj:pl.injuryStatus&&pl.injuryStatus!=='ACTIVE'&&pl.injuryStatus!=='NORMAL'?pl.injuryStatus:(pl.injured?'INJ':''),
+    own:pl.ownership?.percentOwned??0,ownChg:pl.ownership?.percentChange??0,
+    espnWk,seasonPts,ppg:avg,gp:avg?Math.round(seasonPts/avg):0,seasonProj:seasonProj?.appliedTotal||0,
+    expert:cons?.averageRank??null,nExperts:rk.filter(r=>r.rankSourceId!==0).length,
+    teamId:pp.onTeamId||0,fa:pp.status||''};
+}
+function buildSleeper(arr){
+  const key=S.scoring==='ppr'?'pts_ppr':S.scoring==='half'?'pts_half_ppr':'pts_std', m=new Map();
+  for(const r of arr||[]){const p=r.player||{};if(!p.position)continue;
+    const k=pkey(p.position,(p.first_name||'')+' '+(p.last_name||''),r.player_id);
+    S.sleeperIds[r.player_id]=k;
+    const v=r.stats?.[key]; if(v==null&&m.has(k))continue; m.set(k,{pts:v??null,opp:r.opponent})}
+  return m;
+}
+// CBS publishes stat lines; score them with this league's rules so they're comparable
+function buildCBS(arr){
+  const R=S.rules,m=new Map();
+  for(const r of arr||[]){const s=r.stats||{},g=k=>s[k]||0;
+    const pts=r.pos==='K'?g('misc_fpts'):
+      g('passing_yds')*R.passYd+g('passing_td')*R.passTd+g('passing_int')*R.int+g('rushing_yds')*R.rushYd+g('rushing_td')*R.rushTd+
+      g('receiving_rec')*R.rec+g('receiving_yds')*R.recYd+g('receiving_td')*R.recTd+g('misc_fl')*R.fl;
+    m.set(pkey(r.pos,r.name,r.team),{pts:+pts.toFixed(2)})}
+  return m;
+}
+async function loadWeek(w){
+  if(S.src[w]||w>LAST_WEEK)return;
+  S.src[w]={slp:new Map(),cbs:new Map()};
+  const [sl,cb]=await Promise.allSettled([api(`/api/sleeper?season=${S.season}&week=${w}`),api(`/api/cbs?season=${S.season}&week=${w}`)]);
+  if(sl.status==='fulfilled')S.src[w].slp=buildSleeper(sl.value);
+  if(cb.status==='fulfilled')S.src[w].cbs=buildCBS(cb.value);
+  S.status[`Sleeper wk ${w}`]=S.src[w].slp.size; S.status[`CBS wk ${w}`]=S.src[w].cbs.size;
+}
+/* injuries: cross-reference ESPN news, CBS and Sleeper reports with ESPN Fantasy's own tag */
+const SEV={ACTIVE:0,QUESTIONABLE:1,DOUBTFUL:2,OUT:3,SUSP:3,IR:4};
+const INJ_LABEL={ACTIVE:'Active',QUESTIONABLE:'Questionable',DOUBTFUL:'Doubtful',OUT:'Out',SUSP:'Suspended',IR:'IR'};
+function injCode(s){
+  s=String(s||'').toLowerCase();
+  if(!s)return null;
+  if(s.includes('injured reserve')||s==='ir'||s.includes('injury_reserve')||s.includes('physically unable')||s==='pup'||s.includes('non-football'))return 'IR';
+  if(s.includes('suspen'))return 'SUSP';
+  if(s.startsWith('out')||s===' out'||s.includes('out for'))return 'OUT';
+  if(s.includes('doubt'))return 'DOUBTFUL';
+  if(s.includes('question')||s.includes('game time')||s.includes('gtd'))return 'QUESTIONABLE';
+  if(s.includes('active')||s.includes('probable')||s==='normal')return 'ACTIVE';
+  return null;
+}
+function dateToWeek(d){
+  const start=new Date((S.seasonStart||`${S.season}-09-09`)+'T00:00:00'), t=new Date(d);
+  if(isNaN(t))return null; return Math.max(1,Math.floor(((t-start)/864e5+1)/7)+1);
+}
+async function loadInjuries(){
+  S.injRaw=null;
+  try{S.injRaw=await api('/api/injuries')}catch{return}
+  const add=(src,r,extra)=>{const k=pkey(r.pos==='PK'?'K':r.pos,r.name,r.team);
+    const e=S.injRaw.byKey[k]||(S.injRaw.byKey[k]={});e[src]={...r,...extra}};
+  S.injRaw.byKey={};
+  for(const r of S.injRaw.espn)add('espn',r,{code:injCode(r.status),back:r.returnDate?dateToWeek(r.returnDate):null});
+  for(const r of S.injRaw.cbs)add('cbs',r,{code:injCode(r.status),back:r.returnWeek});
+  for(const r of S.injRaw.sleeper)add('slp',r,{code:injCode(r.status)});
+  S.status['ESPN injury news']=S.injRaw.espn.length;S.status['CBS injury report']=S.injRaw.cbs.length;S.status['Sleeper injury status']=S.injRaw.sleeper.length;
+  buildInjuries();
+}
+function buildInjuries(){
+  S.inj=new Map(); if(!S.injRaw)return;
+  for(const p of S.P.values()){
+    const e=S.injRaw.byKey[p.skey]||{}, fan=p.inj?{code:injCode(p.inj)||'QUESTIONABLE'}:null;
+    const srcs={fan,espn:e.espn,cbs:e.cbs,slp:e.slp};
+    const votes=Object.values(srcs).filter(x=>x&&x.code).map(x=>x.code);
+    if(!votes.some(c=>c!=='ACTIVE'))continue;
+    // majority vote; ties go to the more severe status
+    const cnt={};votes.forEach(c=>cnt[c]=(cnt[c]||0)+1);
+    const code=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]||SEV[b]-SEV[a])[0];
+    // return estimates only sideline players who are actually out; a questionable player's "return date" is just his next game
+    const sidelined=['OUT','IR','SUSP'].includes(code);
+    const backs=[e.espn?.back,e.cbs?.back].filter(x=>x&&x>S.week);
+    let back=sidelined&&backs.length?Math.max(...backs):null;
+    if(!back&&code==='OUT')back=S.week+1;
+    S.inj.set(p.skey,{p,code,srcs,agree:new Set(votes).size===1,nSrc:votes.length,back,backs:{espn:e.espn?.back,cbs:e.cbs?.back},
+      injury:e.cbs?.injury||e.espn?.injury||e.slp?.injury||'',practice:e.slp?.practice||'',note:e.espn?.note||e.slp?.notes||'',noteDate:e.espn?.date||''});
+  }
+}
+// expected availability multiplier used in all projections
+function injFactor(p,w){
+  const I=S.inj.get(p.skey); if(!I)return 1;
+  if(I.back&&w<I.back)return 0;
+  if(w===S.week)return {OUT:0,IR:0,SUSP:0,DOUBTFUL:.25,QUESTIONABLE:.9}[I.code]??1;
+  if(I.code==='IR'&&!I.back&&w<S.week+3)return 0;
+  return 1;
+}
+async function loadSleeper(w){if(S.src[w])return;await loadWeek(w);recompute()}
+async function loadExtras(){
+  const n=S.teams.length||10, ppr=S.scoring==='ppr'?1:S.scoring==='half'?.5:0, qbs=(S.SC[7]||S.SC[1])?2:1;
+  const [fp,tr,tv]=await Promise.allSettled([api('/api/fantasypros'),api('/api/trending'),api(`/api/tradevalues?teams=${n}&ppr=${ppr}&qbs=${qbs}`)]);
+  S.fp={wk:new Map(),ros:new Map()};
+  if(fp.status==='fulfilled'){
+    // FantasyPros projections are PPR; only blend their points into PPR leagues
+    for(const r of fp.value.weekly)S.fp.wk.set(pkey(r.pos,r.name,r.team),{...r,pts:S.scoring==='ppr'?r.pts:null});
+    for(const r of fp.value.ros){const k=pkey(r.pos,r.name,r.team);if(!S.fp.ros.has(k))S.fp.ros.set(k,r.ecr)}
+    S.fpDate=fp.value.weekly[0]?.date;
+  }
+  S.trend=new Map();
+  if(tr.status==='fulfilled')for(const r of tr.value){const k=S.sleeperIds[r.player_id];if(k)S.trend.set(k,r.count)}
+  S.tv=new Map();
+  if(tv.status==='fulfilled')for(const r of tv.value){if(r.player?.espnId)S.tv.set(+r.player.espnId,r.redraftValue??r.value)}
+  Object.assign(S.status,{'FantasyPros weekly':S.fp.wk.size,'FantasyPros rest of season':S.fp.ros.size,'Sleeper trending':S.trend.size,'FantasyCalc trade values':S.tv.size});
+  for(const p of S.P.values()){const f=S.fp.wk.get(p.skey);p.fpEcr=f?.ecr??null;p.fpPosRank=f?.posRank||'';p.fpGrade=f?.grade||'';
+    p.fpRos=S.fp.ros.get(p.skey)??null;p.adds=S.trend.get(p.skey)||0;p.tv=S.tv.get(p.id)||0}
+}
+
+/* ---------- projections ---------- */
+function espnProj(p,w){return p.espnWk[w]??null}
+function slpProj(p,w){return S.src[w]?.slp.get(p.skey)?.pts??null}
+function cbsProj(p,w){return S.src[w]?.cbs.get(p.skey)?.pts??null}
+function fpProj(p,w){return w===S.week?S.fp?.wk.get(p.skey)?.pts??null:null}
+const srcProj={espn:espnProj,slp:slpProj,cbs:cbsProj,fp:fpProj};
+function proj(p,w){
+  // ESPN zeroes players on bye or ruled out; trust that over sources that still list them
+  const e=espnProj(p,w); if(e===0&&p.inj&&p.inj!=='QUESTIONABLE')return 0;
+  const v=SOURCES.map(([k])=>srcProj[k](p,w)).filter(x=>x!=null);
+  return v.length?mean(v)*injFactor(p,w):0;
+}
+const srcRange=(p,w)=>{const v=SOURCES.map(([k])=>srcProj[k](p,w)).filter(x=>x!=null);return v.length?[Math.min(...v),Math.max(...v)]:[0,0]};
+const nSrc=(p,w)=>SOURCES.filter(([k])=>srcProj[k](p,w)!=null).length;
+const opp=(p,w)=>S.src[w]?.slp.get(p.skey)?.opp||'';
+function optimal(roster,f){
+  const used=new Set(),lineup=[];let total=0;
+  for(const slot of START_ORDER){const n=S.SC[slot]||0;
+    for(let i=0;i<n;i++){let best=null,bv=-1;
+      for(const p of roster){if(used.has(p.id)||!p.slots.includes(slot))continue;const v=f(p);if(v>bv){bv=v;best=p}}
+      if(best){used.add(best.id);total+=bv}lineup.push({slot,p:best,v:best?bv:0})}}
+  return {total,lineup,bench:roster.filter(p=>!used.has(p.id))};
+}
+const rosterOf=t=>t.ids.map(id=>S.P.get(id)).filter(Boolean);
+const rosLineup=roster=>optimal(roster,p=>p.rosAvg).total;
+
+function recompute(){
+  const weeks=range(S.week,LAST_WEEK);
+  for(const p of S.P.values()){
+    p.wk=proj(p,S.week); p.rosTotal=weeks.reduce((a,w)=>a+proj(p,w),0); p.rosAvg=p.rosTotal/weeks.length;
+  }
+  // replacement level per position
+  const n=S.teams.length||10, sc=S.SC, flexShare={QB:(sc[7]||0)*.9+(sc[1]||0),RB:(sc[23]||0)*.45+(sc[3]||0)*.5,WR:(sc[23]||0)*.45+(sc[3]||0)*.5+(sc[5]||0)*.7,TE:(sc[23]||0)*.1+(sc[5]||0)*.3,K:0,'D/ST':0};
+  const ded={QB:sc[0]||0,RB:sc[2]||0,WR:sc[4]||0,TE:sc[6]||0,K:sc[17]||0,'D/ST':sc[16]||0};
+  S.repl={};S.replWk={};
+  for(const pos of POSLIST){
+    const N=Math.max(1,Math.round(n*(ded[pos]+flexShare[pos])));
+    const all=[...S.P.values()].filter(p=>p.pos===pos);
+    const r=all.map(p=>p.rosAvg).sort((a,b)=>b-a), w=all.map(p=>p.wk).sort((a,b)=>b-a);
+    S.repl[pos]=r[N]??0; S.replWk[pos]=w[N]??0;
+  }
+  for(const p of S.P.values())p.vor=p.rosAvg-S.repl[p.pos];
+  // teams
+  for(const t of S.teams){
+    const ro=rosterOf(t);
+    t.wkOpt=optimal(ro,p=>proj(p,S.week));
+    t.wkProj=t.wkOpt.total;
+    t.rosProj=mean(weeks.map(w=>optimal(ro,p=>proj(p,w)).total));
+    const rl=optimal(ro,p=>p.rosAvg);
+    t.posScore={};for(const pos of POSLIST)t.posScore[pos]=0;
+    for(const l of rl.lineup)if(l.p)t.posScore[l.p.pos]+=l.v;
+    const gp=t.w+t.l+t.t||1; t.winPct=(t.w+t.t/2)/gp; t.ppg=t.pf/gp;
+    t.market=ro.reduce((s,p)=>s+(p.tv||0),0);
+  }
+  for(const pos of POSLIST){
+    const sorted=[...S.teams].sort((a,b)=>b.posScore[pos]-a.posScore[pos]);
+    sorted.forEach((t,i)=>{t.posGrade=t.posGrade||{};t.posGrade[pos]=gradeOf(S.teams.length>1?1-i/(S.teams.length-1):1)});
+  }
+  // all-play
+  const byWeek={};
+  for(const m of S.schedule){if(!m.done)continue;(byWeek[m.wk]=byWeek[m.wk]||[]).push([m.h,m.hs],[m.a,m.as])}
+  for(const t of S.teams){t.apW=0;t.apG=0}
+  for(const arr of Object.values(byWeek))for(const [tid,s] of arr){const t=S.teams.find(x=>x.id===tid);if(!t)continue;
+    for(const [o,os] of arr)if(o!==tid){t.apG++;if(s>os)t.apW++;else if(s===os)t.apW+=.5}}
+  for(const t of S.teams)t.apPct=t.apG?t.apW/t.apG:t.winPct;
+  // composite power score
+  const A=k=>S.teams.map(t=>t[k]);
+  const ros=A('rosProj'),wk=A('wkProj'),ppg=A('ppg'),wp=A('winPct'),ap=A('apPct'),mk=A('market');
+  const hasMk=mk.some(x=>x>0);
+  for(const t of S.teams){
+    t.power=(hasMk?.3:.4)*z(t.rosProj,ros)+.2*z(t.wkProj,wk)+.2*z(t.ppg,ppg)+.1*z(t.winPct,wp)+.1*z(t.apPct,ap)+(hasMk?.1*z(t.market,mk):0);
+    t.rating=Math.max(1,Math.min(99,Math.round(70+t.power*12)));
+  }
+  S.teams.sort((a,b)=>b.power-a.power).forEach((t,i)=>t.rank=i+1);
+  render();
+}
+
+/* ---------- loading ---------- */
+async function loadLeague(){
+  const lid=store.get('leagueId','');
+  S.seasonStart=null; S.season=+store.get('season',2026)||2026;
+  $('#main').innerHTML='<div class="loading">Pulling your league plus ESPN, Sleeper, CBS, FantasyPros and FantasyCalc data…</div>';
+  S.src={};S.status={};S.P=new Map();S.err=null;S.rules={...DEFAULT_RULES};
+  try{
+    const state=await api('/api/state').catch(()=>null);
+    S.seasonStart=state?.season_start_date||null;
+    if(!lid){return loadDemo(state)}
+    const L=await api(`/api/league?season=${S.season}&leagueId=${encodeURIComponent(lid)}`,true);
+    S.demo=false;
+    S.week=Math.min(LAST_WEEK,L.scoringPeriodId||L.status?.latestScoringPeriod||state?.week||1);
+    S.projWeek=S.week;
+    S.leagueName=L.settings?.name||('League '+lid);
+    S.SC=Object.fromEntries(Object.entries(L.settings?.rosterSettings?.lineupSlotCounts||{}).map(([k,v])=>[+k,v]));
+    const items=L.settings?.scoringSettings?.scoringItems||[], pts=(id,d)=>items.find(i=>i.statId===id)?.points??d;
+    const rec=pts(53,0);
+    S.scoring=rec>=1?'ppr':rec>=.5?'half':'std';
+    S.rules={passYd:pts(3,.04),passTd:pts(4,4),int:pts(20,-2),rushYd:pts(24,.1),rushTd:pts(25,6),rec,recYd:pts(42,.1),recTd:pts(43,6),fl:pts(72,-2)};
+    const acq=L.settings?.acquisitionSettings; S.faab=acq?.isUsingAcquisitionBudget?acq.acquisitionBudget:null;
+    const members=Object.fromEntries((L.members||[]).map(m=>[m.id,m.displayName||((m.firstName||'')+' '+(m.lastName||'')).trim()]));
+    const PL=await api(`/api/players?season=${S.season}&week=${S.week}&leagueId=${encodeURIComponent(lid)}`,true);
+    for(const pp of PL.players||[]){const p=parsePlayer(pp);if(p)S.P.set(p.id,p)}
+    S.teams=(L.teams||[]).map(t=>{
+      const ids=[];
+      for(const e of t.roster?.entries||[]){
+        ids.push(e.playerId);
+        if(!S.P.has(e.playerId)&&e.playerPoolEntry){const p=parsePlayer({...e.playerPoolEntry,onTeamId:t.id});if(p)S.P.set(p.id,p)}
+        const p=S.P.get(e.playerId); if(p){p.teamId=t.id;p.slotNow=e.lineupSlotId}
+      }
+      const o=t.record?.overall||{};
+      return {id:t.id,name:(t.name||`${t.location||''} ${t.nickname||''}`).trim()||('Team '+t.id),abbrev:t.abbrev||'',
+        owner:(t.owners||[]).map(id=>members[id]).filter(Boolean).join(', '),ids,w:o.wins||0,l:o.losses||0,t:o.ties||0,
+        pf:o.pointsFor||0,pa:o.pointsAgainst||0,faabLeft:S.faab!=null?S.faab-(t.transactionCounter?.acquisitionBudgetSpent||0):null};
+    });
+    S.schedule=(L.schedule||[]).filter(m=>m.home&&m.away).map(m=>({wk:m.matchupPeriodId,h:m.home.teamId,a:m.away.teamId,
+      hs:m.home.totalPoints||0,as:m.away.totalPoints||0,done:m.winner&&m.winner!=='UNDECIDED'}));
+  }catch(e){S.err=e.message;return loadDemo(null,e.message)}
+  await finishLoad();
+}
+async function loadDemo(state,why){
+  S.demo=true; S.week=Math.min(LAST_WEEK,state?.week||8); S.projWeek=S.week; S.scoring='ppr'; S.faab=100; S.rules={...DEFAULT_RULES};
+  S.leagueName='Demo League (10 teams, PPR)';
+  S.SC={0:1,2:2,4:2,6:1,23:1,16:1,17:1,20:7,21:1};
+  let PL;
+  try{PL=await api(`/api/players?season=${S.season}&week=${S.week}`)}
+  catch(e){$('#main').innerHTML=`<div class="notice err"><b>Couldn't reach ESPN:</b> ${esc(e.message)}. Check your internet connection and reload.</div>`;return}
+  for(const pp of PL.players||[]){const p=parsePlayer({...pp,onTeamId:0});if(p)S.P.set(p.id,p)}
+  const names=['Gridiron Goons','Touchdown Tyrants','Fourth & Long','Blitz Brigade','End Zone Elite','Red Zone Rebels','Hail Mary Heroes','Pigskin Pirates','Fumble Factory','Waiver Wire Wizards'];
+  S.teams=names.map((n,i)=>({id:i+1,name:n,abbrev:n.split(' ').map(x=>x[0]).join(''),owner:'Demo owner',ids:[],w:0,l:0,t:0,pf:0,pa:0,faabLeft:100-Math.round(seeded(i+7)()*60)}));
+  const caps={QB:2,RB:6,WR:6,TE:2,K:1,'D/ST':1}, pool=[...S.P.values()].sort((a,b)=>b.seasonProj-a.seasonProj), cnt=S.teams.map(()=>({}));
+  for(let r=0;r<16;r++){const order=r%2?[...S.teams.keys()].reverse():[...S.teams.keys()];
+    for(const ti of order){const need=r>=14?(cnt[ti].K?'D/ST':'K'):null;
+      const p=pool.find(p=>!p.teamId&&(need?p.pos===need:(cnt[ti][p.pos]||0)<caps[p.pos]&&!['K','D/ST'].includes(p.pos)));
+      if(!p)continue;p.teamId=S.teams[ti].id;cnt[ti][p.pos]=(cnt[ti][p.pos]||0)+1;S.teams[ti].ids.push(p.id)}}
+  // simulated past results from each roster's actual points per game
+  const rnd=seeded(42); S.schedule=[];
+  const strength=S.teams.map(t=>optimal(rosterOf(t),p=>p.ppg).total);
+  for(let w=1;w<=LAST_WEEK-3;w++){const ids=S.teams.map(t=>t.id),rot=[ids[0],...ids.slice(1).slice((w-1)%9),...ids.slice(1).slice(0,(w-1)%9)];
+    for(let i=0;i<5;i++){const h=rot[i],a=rot[9-i],done=w<S.week;
+      const hs=done?+(strength[h-1]*(.75+rnd()*.5)).toFixed(1):0,as=done?+(strength[a-1]*(.75+rnd()*.5)).toFixed(1):0;
+      S.schedule.push({wk:w,h,a,hs,as,done});
+      if(done){const H=S.teams[h-1],A=S.teams[a-1];H.pf+=hs;H.pa+=as;A.pf+=as;A.pa+=hs;if(hs>as){H.w++;A.l++}else{A.w++;H.l++}}}}
+  S.err=why||null;
+  await finishLoad();
+}
+async function finishLoad(){
+  await loadWeek(S.week);
+  await Promise.all([loadExtras(),loadInjuries()]);
+  const saved=store.get('myTeam_'+(store.get('leagueId','')||'demo'),null);
+  S.my=S.teams.find(t=>t.id===saved)?.id||S.teams[0]?.id;
+  S.trade={a:S.my,b:S.teams.find(t=>t.id!==S.my)?.id,ga:new Set(),gb:new Set()};
+  $('#myTeam').innerHTML=S.teams.map(t=>`<option value="${t.id}" ${t.id===S.my?'selected':''}>${esc(t.name)}</option>`).join('');
+  $('#leagueLabel').textContent=`${S.leagueName} · ${S.season} · Week ${S.week} · ${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]}`;
+  recompute();
+}
+$('#myTeam').onchange=e=>{S.my=+e.target.value;store.set('myTeam_'+(store.get('leagueId','')||'demo'),S.my);S.trade.a=S.my;S.trade.ga=new Set();if(S.trade.b===S.my)S.trade.b=S.teams.find(t=>t.id!==S.my).id;render()};
+
+/* ---------- render ---------- */
+function go(v){S.view=v;render();window.scrollTo(0,0)}
+function render(){
+  $('#nav').innerHTML=TABS.map(([k,l])=>`<button class="${S.view===k?'on':''}" onclick="go('${k}')">${l}</button>`).join('');
+  const banner=S.demo?`<div class="notice ${S.err?'err':''}">${S.err?`<b>Couldn't load your league:</b> ${esc(S.err)}<br>`:''}You're viewing a <b>demo league</b> built from real ${S.season} players and projections. <a href="#" onclick="go('settings');return false">Connect your ESPN league</a> to see your own teams.</div>`:'';
+  const v={power:vPower,startsit:vStartSit,teams:vTeams,proj:vProj,players:vPlayers,injuries:vInjuries,pickups:vPickups,trade:vTrade,settings:vSettings}[S.view];
+  if(!S.teams.length&&S.view!=='settings'){$('#main').innerHTML='<div class="loading">Loading…</div>';return}
+  let html;
+  try{html=v()}catch(e){console.error(e);html=`<div class="notice err">Something went wrong drawing this page: ${esc(e.message)}</div>`}
+  $('#main').innerHTML=banner+html;
+  if(S.view==='players'){const i=$('#search');if(i&&S._focus){i.focus();i.setSelectionRange(i.value.length,i.value.length)}}
+}
+const team=id=>S.teams.find(t=>t.id===id);
+const rec=t=>`${t.w}-${t.l}${t.t?'-'+t.t:''}`;
+function matchupFor(tid,w){return S.schedule.find(m=>m.wk===w&&(m.h===tid||m.a===tid))}
+
+function blurb(t){
+  const g=t.posGrade, strong=POSLIST.filter(p=>!['K','D/ST'].includes(p)&&g[p][0]==='A'), weak=POSLIST.filter(p=>!['K','D/ST'].includes(p)&&'DF'.includes(g[p][0]));
+  const bits=[];
+  if(strong.length)bits.push(`Strength at ${strong.join(', ')}.`);
+  if(weak.length)bits.push(`Needs help at ${weak.join(', ')}.`);
+  const luck=t.winPct-t.apPct;
+  if(t.apG&&luck>.12)bits.push(`Record is better than the scoring (all-play ${(t.apPct*100).toFixed(0)}%) — some luck involved.`);
+  if(t.apG&&luck<-.12)bits.push(`Unlucky so far: all-play ${(t.apPct*100).toFixed(0)}% says they deserve a better record.`);
+  const rr=[...S.teams].sort((a,b)=>b.rosProj-a.rosProj).indexOf(t)+1;
+  bits.push(`#${rr} rest-of-season roster by projections.`);
+  const m=matchupFor(t.id,S.week);
+  if(m){const o=team(m.h===t.id?m.a:m.h);if(o)bits.push(`Week ${S.week}: ${f1(t.wkProj)} vs ${esc(o.name)} (${f1(o.wkProj)}) — ${(winProb(t.wkProj,o.wkProj)*100).toFixed(0)}% to win.`)}
+  return bits.join(' ');
+}
+function vPower(){
+  return `<h2>Power Rankings</h2><p class="sub">Week ${S.week}. Blends rest-of-season lineup strength (30%), this week's projected lineup (20%), points per game (20%), record (10%), all-play record (10%) and FantasyCalc trade-market value of the roster (10%). Projections average ESPN, Sleeper, CBS and FantasyPros, adjusted for injuries.</p>
+  <div class="grid">${S.teams.map(t=>`<div class="card pr-card">
+    <div class="rank">${t.rank}</div>
+    <div><div class="tname">${esc(t.name)} ${t.id===S.my?'<span class="chip">YOU</span>':''}</div>
+      <div class="meta">${esc(t.owner)} · ${rec(t)} · ${f1(t.ppg)} PPG · Wk ${S.week} proj ${f1(t.wkProj)} · ROS ${f1(t.rosProj)}/wk${t.market?` · Trade value ${Math.round(t.market).toLocaleString()}`:''}</div>
+      <div class="bars">${POSLIST.map(p=>`<span class="meta">${p} ${gradeTag(t.posGrade[p])}</span>`).join('')}</div>
+      <div class="blurb">${blurb(t)}</div></div>
+    <div class="rating">${t.rating}<small>RATING</small></div></div>`).join('')}</div>`;
+}
+function lineupTable(t,w){
+  const ro=rosterOf(t),o=optimal(ro,p=>proj(p,w));
+  const row=(slot,p,v)=>p?`<tr><td><span class="chip">${SLOT[slot]||slot}</span></td><td>${posTag(p.pos)} ${esc(p.name)}${injTag(p)}</td><td>${p.nfl}</td><td>${esc(opp(p,w))}</td>
+    ${SOURCES.map(([k])=>`<td class="num">${f1(srcProj[k](p,w))}</td>`).join('')}<td class="num"><b>${f1(v)}</b></td><td class="num">${f1(p.rosAvg)}</td></tr>`:`<tr><td><span class="chip">${SLOT[slot]}</span></td><td colspan="${6+SOURCES.length}" class="meta">Empty</td></tr>`;
+  return `<div class="tbl-wrap"><table><thead><tr><th>Slot</th><th>Player</th><th>NFL</th><th>Opp</th>${SOURCES.map(([,l])=>`<th class="num">${l}</th>`).join('')}<th class="num">Proj</th><th class="num">ROS/wk</th></tr></thead><tbody>
+  ${o.lineup.map(l=>row(l.slot,l.p,l.v)).join('')}
+  <tr><td colspan="${4+SOURCES.length}"><b>Projected starters</b></td><td class="num"><b>${f1(o.total)}</b></td><td></td></tr>
+  ${o.bench.sort((a,b)=>proj(b,w)-proj(a,w)).map(p=>row(20,p,proj(p,w))).join('')}</tbody></table></div>`;
+}
+function vTeams(){
+  const t=team(S.teamView||S.my)||S.teams[0], w=S.week, m=matchupFor(t.id,w), o=m&&team(m.h===t.id?m.a:m.h);
+  const wp=o?winProb(t.wkProj,o.wkProj):null;
+  return `<h2>Teams</h2><p class="sub">Best possible lineup for week ${w} using consensus projections (average of ESPN, Sleeper, CBS and FantasyPros, adjusted for injuries).</p>
+  <div class="row" style="margin-bottom:14px"><select onchange="S.teamView=+this.value;render()">${S.teams.map(x=>`<option value="${x.id}" ${x.id===t.id?'selected':''}>#${x.rank} ${esc(x.name)}</option>`).join('')}</select></div>
+  <div class="grid g3" style="margin-bottom:14px">
+    <div class="card"><div class="meta">Power rank</div><div class="big">#${t.rank} <span class="meta">rating ${t.rating}</span></div><div class="meta">${rec(t)} · PF ${f1(t.pf)} · PA ${f1(t.pa)}</div></div>
+    <div class="card"><div class="meta">Week ${w} matchup</div>${o?`<div class="mu"><div><b>${esc(t.abbrev||t.name)}</b><div class="big">${f1(t.wkProj)}</div></div><div class="meta">vs</div><div class="r"><b>${esc(o.abbrev||o.name)}</b><div class="big">${f1(o.wkProj)}</div></div></div><div class="pbar"><div style="width:${(wp*100).toFixed(0)}%"></div></div><div class="meta">${(wp*100).toFixed(0)}% win probability</div>`:'<div class="meta">No matchup found</div>'}</div>
+    <div class="card"><div class="meta">Position grades (rest of season)</div><div class="bars">${POSLIST.map(p=>`<span>${p} ${gradeTag(t.posGrade[p])}</span>`).join('')}</div>${t.faabLeft!=null?`<div class="meta">FAAB left: $${t.faabLeft}</div>`:''}</div>
+  </div>${lineupTable(t,w)}`;
+}
+function vProj(){
+  const w=S.projWeek, loaded=!!S.src[w];
+  if(!loaded)loadSleeper(w);
+  const rows=S.teams.map(t=>{const ro=rosterOf(t),o=optimal(ro,p=>proj(p,w));
+    // each site's number for the same consensus lineup (sources missing a player fall back to consensus)
+    const by=Object.fromEntries(SOURCES.map(([k])=>[k,o.lineup.reduce((s,l)=>s+(l.p?(srcProj[k](l.p,w)??l.v):0),0)]));
+    return{t,c:o.total,by}}).sort((a,b)=>b.c-a.c);
+  const R=Object.fromEntries(rows.map(r=>[r.t.id,r]));
+  const ms=S.schedule.filter(m=>m.wk===w);
+  return `<h2>Weekly Projections</h2><p class="sub">Each team's best lineup, projected by each site and by the consensus (adjusted for injuries). FantasyPros only publishes the current week. ${loaded?'':'Loading this week’s projections…'}</p>
+  <div class="row" style="margin-bottom:14px"><span class="meta">Week</span><select onchange="S.projWeek=+this.value;render()">${range(S.week,LAST_WEEK).map(x=>`<option ${x===w?'selected':''}>${x}</option>`).join('')}</select></div>
+  ${ms.length?`<div class="grid g2" style="margin-bottom:18px">${ms.map(m=>{const h=R[m.h],a=R[m.a];if(!h||!a)return'';const p=winProb(h.c,a.c);
+    return `<div class="card"><div class="mu"><div><b>${esc(h.t.name)}</b><div class="big">${f1(h.c)}</div><div class="meta">${(p*100).toFixed(0)}%</div></div><div class="meta">vs</div><div class="r"><b>${esc(a.t.name)}</b><div class="big">${f1(a.c)}</div><div class="meta">${((1-p)*100).toFixed(0)}%</div></div></div><div class="pbar"><div style="width:${(p*100).toFixed(0)}%"></div></div></div>`}).join('')}</div>`:''}
+  <div class="tbl-wrap"><table><thead><tr><th>#</th><th>Team</th>${SOURCES.map(([,l])=>`<th class="num">${l}</th>`).join('')}<th class="num">Consensus</th></tr></thead><tbody>
+  ${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.t.name)}</td>${SOURCES.map(([k])=>`<td class="num">${k==='fp'&&w!==S.week?'—':f1(r.by[k])}</td>`).join('')}<td class="num"><b>${f1(r.c)}</b></td></tr>`).join('')}</tbody></table></div>
+  <p class="sub" style="margin-top:10px">Per-player projections for any week are in <a href="#" onclick="go('players');return false">Player Rankings</a>.</p>`;
+}
+
+/* players spreadsheet */
+const PCOLS=[['rk','Rk',1],['name','Player'],['pos','Pos'],['nfl','NFL'],['opp','Opp'],['owner','Fantasy team'],['espn','ESPN',1],['slp','Sleeper',1],['cbs','CBS',1],['fp','FPros',1],['cons','Proj',1],['range','Low–High'],
+  ['fpEcr','FP ECR',1],['fpGrade','FP grade'],['expert','ESPN rk',1],['fpRos','FP ROS rk',1],['rosAvg','ROS/wk',1],['rosTotal','ROS total',1],['seasonPts','Season pts',1],['ppg','PPG',1],['tv','Trade value',1],['own','% Own',1],['ownChg','Own +/-',1],['adds','Sleeper adds',1]];
+const ASC_COLS=['expert','fpEcr','fpRos'];
+function playerRows(){
+  const w=S.projWeek, q=norm(S.search);
+  let ps=[...S.P.values()].filter(p=>S.posTab==='ALL'||(S.posTab==='FLEX'?['RB','WR','TE'].includes(p.pos):p.pos===S.posTab));
+  if(S.avail==='fa')ps=ps.filter(p=>!p.teamId); if(S.avail==='rost')ps=ps.filter(p=>p.teamId);
+  const rows=ps.map(p=>({p,name:p.name,pos:p.pos,nfl:p.nfl,opp:opp(p,w),owner:p.teamId?(team(p.teamId)?.name||''):(p.fa==='WAIVERS'?'Waivers':'Free agent'),
+    espn:espnProj(p,w),slp:slpProj(p,w),cbs:cbsProj(p,w),fp:fpProj(p,w),cons:proj(p,w),range:srcRange(p,w).map(f1).join('–'),
+    fpEcr:w===S.week?p.fpEcr:null,fpGrade:w===S.week?p.fpGrade:'',fpRos:p.fpRos,tv:p.tv||null,adds:p.adds||null,
+    rosAvg:p.rosAvg,rosTotal:p.rosTotal,seasonPts:p.seasonPts,ppg:p.ppg,expert:p.expert,own:p.own,ownChg:p.ownChg}));
+  const base=S.rankBy==='ros'?'rosAvg':'cons';
+  rows.sort((a,b)=>b[base]-a[base]).forEach((r,i)=>r.rk=i+1);
+  const k=S.sortKey;
+  if(k&&k!=='rk')rows.sort((a,b)=>{const x=a[k],y=b[k];if(x==null)return 1;if(y==null)return -1;return(typeof x==='string'?x.localeCompare(y):x-y)*S.sortDir*(ASC_COLS.includes(k)?-1:1)});
+  if(k==='rk'&&S.sortDir===1)rows.reverse();
+  return q?rows.filter(r=>norm(r.name).includes(q)||norm(r.owner).includes(q)):rows;
+}
+function vPlayers(){
+  const rows=playerRows(), mx=Math.max(1,...rows.map(r=>r.cons));
+  return `<h2>Player Rankings</h2><p class="sub">Every player at every position, ranked by ${S.rankBy==='ros'?'rest-of-season projected points per week':`week ${S.projWeek} consensus projection`}. "Proj" = average of ESPN, Sleeper, CBS and FantasyPros (adjusted for injuries); "Low–High" is the spread between sites. "FP ECR" = FantasyPros expert consensus rank this week, "ESPN rk" = ESPN analysts' average position rank, "FP ROS rk" = FantasyPros rest-of-season position rank, "Trade value" = FantasyCalc market value. Click a column to sort.</p>
+  <div class="tabs">${['ALL','QB','RB','WR','TE','FLEX','K','D/ST'].map(p=>`<button class="${S.posTab===p?'on':''}" onclick="S.posTab='${p}';S.sortKey=null;render()">${p}</button>`).join('')}</div>
+  <div class="row" style="margin-bottom:10px">
+    <input id="search" placeholder="Search player or team" style="max-width:240px" value="${esc(S.search)}" oninput="S.search=this.value;S._focus=1;render();S._focus=0">
+    <select onchange="S.avail=this.value;render()"><option value="all">All players</option><option value="fa" ${S.avail==='fa'?'selected':''}>Available only</option><option value="rost" ${S.avail==='rost'?'selected':''}>Rostered only</option></select>
+    <select onchange="S.rankBy=this.value;S.sortKey=null;render()"><option value="wk">Rank by this week</option><option value="ros" ${S.rankBy==='ros'?'selected':''}>Rank by rest of season</option></select>
+    <span class="meta">Week</span><select onchange="S.projWeek=+this.value;loadSleeper(S.projWeek);render()">${range(S.week,LAST_WEEK).map(x=>`<option ${x===S.projWeek?'selected':''}>${x}</option>`).join('')}</select>
+    <div class="spacer"></div><button class="btn" onclick="exportCSV()">Download CSV</button></div>
+  <div class="tbl-wrap" style="max-height:70vh"><table><thead><tr>${PCOLS.map(([k,l,n])=>`<th class="${n?'num':''}" onclick="sortBy('${k}')">${l}${S.sortKey===k?(S.sortDir<0?' ▼':' ▲'):''}</th>`).join('')}</tr></thead><tbody>
+  ${rows.slice(0,400).map(r=>`<tr${r.p.teamId===S.my?' style="background:color-mix(in srgb,var(--accent) 7%,transparent)"':''}><td class="num">${r.rk}</td><td><b>${esc(r.name)}</b>${injTag(r.p)}</td><td>${posTag(r.pos)}</td><td>${r.nfl}</td><td>${esc(r.opp)}</td>
+    <td class="${r.p.teamId?'':'pos-good'}">${esc(r.owner)}</td><td class="num">${f1(r.espn)}</td><td class="num">${f1(r.slp)}</td><td class="num">${f1(r.cbs)}</td><td class="num">${f1(r.fp)}</td>
+    <td class="num" style="background:rgba(var(--heat),${(r.cons/mx*.28).toFixed(3)})"><b>${f1(r.cons)}</b></td><td class="meta">${r.range}</td>
+    <td class="num">${r.fpEcr?f1(r.fpEcr):'—'}</td><td>${r.fpGrade&&r.fpGrade!=='NA'?gradeTag(r.fpGrade):''}</td><td class="num">${r.expert?f1(r.expert):'—'}</td><td class="num">${r.fpRos?f1(r.fpRos):'—'}</td>
+    <td class="num">${f1(r.rosAvg)}</td><td class="num">${f1(r.rosTotal)}</td><td class="num">${f1(r.seasonPts)}</td><td class="num">${f1(r.ppg)}</td><td class="num">${r.tv?r.tv.toLocaleString():'—'}</td>
+    <td class="num">${f1(r.own)}</td><td class="num ${r.ownChg>0?'pos-good':r.ownChg<0?'neg':''}">${r.ownChg?sgn(r.ownChg):'—'}</td><td class="num">${r.adds?r.adds.toLocaleString():'—'}</td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+function sortBy(k){if(S.sortKey===k)S.sortDir*=-1;else{S.sortKey=k;S.sortDir=['name','pos','nfl','opp','owner'].includes(k)?1:-1}render()}
+function exportCSV(){
+  const rows=playerRows(),cols=PCOLS.map(c=>c[0]);
+  const csv=[PCOLS.map(c=>c[1]).join(','),...rows.map(r=>cols.map(c=>{const v=r[c];return typeof v==='number'?v.toFixed(2):`"${String(v??'').replace(/"/g,'""')}"`}).join(','))].join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`player-rankings-${S.posTab}-wk${S.projWeek}.csv`.replace('/','');a.click();
+}
+
+/* pickups */
+function pickupData(){
+  const my=team(S.my), ro=my?rosterOf(my):[], base=rosLineup(ro), baseWk=optimal(ro,p=>p.wk).total;
+  const fas=[...S.P.values()].filter(p=>!p.teamId&&p.rosAvg>0);
+  for(const p of fas){
+    const rosOver=p.rosAvg-S.repl[p.pos], wkOver=p.wk-S.replWk[p.pos];
+    // trend: ESPN ownership change + Sleeper adds in the last 48h
+    const trend=Math.max(-10,Math.min(20,p.ownChg))*.25+Math.min(5,Math.log10(1+p.adds)*1.2);
+    // FantasyPros rest-of-season expert rank vs. the number of starters at the position
+    const N=Math.max(6,Math.round((S.teams.length||10)*({QB:1,RB:2.5,WR:2.5,TE:1,K:1,'D/ST':1}[p.pos])));
+    const expert=p.fpRos?Math.max(-4,Math.min(6,(N*1.5-p.fpRos)/N*4)):-2;
+    p.pkRaw=.45*rosOver+.2*wkOver+.2*expert+.15*trend; p.wkOver=wkOver; p.rosOver=rosOver;
+  }
+  // rank within the available pool, nudged by absolute value over replacement;
+  // K and D/ST are rated in their own pool on a lower ceiling since they can be streamed
+  const pool=(list,n,lo,hi)=>list.sort((a,b)=>b.pkRaw-a.pkRaw).slice(0,n).map((p,i,arr)=>{
+    p.pkRating=Math.max(1,Math.min(hi,Math.round(lo+(hi-lo)*(1-i/Math.max(1,arr.length-1))+2*p.pkRaw)));return p});
+  const isST=p=>['K','D/ST'].includes(p.pos);
+  const top=[...pool(fas.filter(p=>!isST(p)),50,42,97),...pool(fas.filter(p=>p.pos==='K'),8,35,72),...pool(fas.filter(p=>p.pos==='D/ST'),8,35,72)];
+  const dropCand=[...ro].sort((a,b)=>a.rosAvg-b.rosAvg);
+  for(const p of top){
+    p.gain=rosLineup([...ro,p])-base; p.gainWk=optimal([...ro,p],q=>q.wk).total-baseWk;
+    p.drop=dropCand.find(d=>!['K','D/ST'].includes(d.pos)||d.pos===p.pos)||dropCand[0];
+    const tags=[];
+    if(p.pkRating>=85)tags.push('Must add');else if(p.pkRating>=75)tags.push('Strong add');
+    if(p.wkOver>=2&&p.rosOver<1)tags.push('Streamer');
+    if(p.ownChg>=3)tags.push('Trending ↑');
+    if(p.gain>=1.5)tags.push('Fills your need');
+    const I=S.inj.get(p.skey); if(I)tags.push(INJ_LABEL[I.code]+(I.back?` (back wk ${I.back})`:''));
+    if(p.adds>=1000)tags.push(`${p.adds.toLocaleString()} Sleeper adds`);
+    p.tags=tags;
+  }
+  return top;
+}
+const pkGrade=r=>r>=88?'A+':r>=80?'A':r>=72?'B+':r>=65?'B':r>=58?'C':r>=50?'D':'F';
+function faabBid(r,pos){if(S.faab==null)return'';if(['K','D/ST'].includes(pos))return'$0–1';const pct=r>=88?[20,35]:r>=80?[10,20]:r>=72?[5,10]:r>=65?[2,5]:r>=58?[1,2]:[0,1];return `$${Math.round(S.faab*pct[0]/100)}–${Math.round(S.faab*pct[1]/100)}`}
+function vPickups(){
+  const ps=pickupData(), pos=S.pkPos||'ALL', list=ps.filter(p=>pos==='ALL'||p.pos===pos).sort((a,b)=>S.pkSort==='gain'?b.gain-a.gain:b.pkRating-a.pkRating);
+  return `<h2>Pickup Ratings</h2><p class="sub">The best available players, rated 1–99 against each other on rest-of-season projected value above a replacement-level starter (45%), this week's projection (20%), FantasyPros rest-of-season expert rank (20%) and add trend from ESPN ownership + Sleeper adds (15%). Injured players are projected at zero until their expected return week. Kickers and defenses are discounted since they can be streamed. "Your gain" = how much your best lineup improves per week if you add them.</p>
+  <div class="row" style="margin-bottom:10px"><div class="tabs" style="margin:0">${['ALL',...POSLIST].map(p=>`<button class="${pos===p?'on':''}" onclick="S.pkPos='${p}';render()">${p}</button>`).join('')}</div><div class="spacer"></div>
+  <select onchange="S.pkSort=this.value;render()"><option value="rating">Sort by rating</option><option value="gain" ${S.pkSort==='gain'?'selected':''}>Sort by gain for my team</option></select></div>
+  <div class="tbl-wrap"><table><thead><tr><th>Grade</th><th class="num">Rating</th><th>Player</th><th>Pos</th><th>NFL</th><th>Status</th><th class="num">Wk ${S.week} proj</th><th class="num">ROS/wk</th><th class="num">FP ROS rk</th><th class="num">% Own</th><th class="num">Trend</th><th class="num">Sleeper adds</th><th class="num">Your gain/wk</th>${S.faab!=null?'<th>FAAB bid</th>':''}<th>Drop</th><th>Notes</th></tr></thead><tbody>
+  ${list.map(p=>`<tr><td>${gradeTag(pkGrade(p.pkRating))}</td><td class="num"><b>${p.pkRating}</b></td><td><b>${esc(p.name)}</b></td><td>${posTag(p.pos)}</td><td>${p.nfl}</td><td class="meta">${p.fa==='WAIVERS'?'Waivers':'FA'}</td>
+    <td class="num">${f1(p.wk)}</td><td class="num">${f1(p.rosAvg)}</td><td class="num">${p.fpRos?p.pos+Math.round(p.fpRos):'—'}</td><td class="num">${f1(p.own)}</td><td class="num ${p.ownChg>0?'pos-good':p.ownChg<0?'neg':''}">${p.ownChg?sgn(p.ownChg):'—'}</td><td class="num">${p.adds?p.adds.toLocaleString():'—'}</td>
+    <td class="num ${p.gain>0.05?'pos-good':''}">${p.gain>0.05?sgn(p.gain):'—'}</td>${S.faab!=null?`<td>${faabBid(p.pkRating,p.pos)}</td>`:''}<td class="meta">${p.drop?esc(p.drop.name):''}</td><td>${p.tags.map(t=>`<span class="chip">${esc(t)}</span>`).join(' ')}</td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+
+/* trade analyzer */
+function evalTrade(aId,bId,ga,gb){
+  const A=team(aId),B=team(bId),ra=rosterOf(A),rb=rosterOf(B);
+  const give=[...ga].map(id=>S.P.get(id)).filter(Boolean),get=[...gb].map(id=>S.P.get(id)).filter(Boolean);
+  const na=[...ra.filter(p=>!ga.has(p.id)),...get],nb=[...rb.filter(p=>!gb.has(p.id)),...give];
+  const dA=rosLineup(na)-rosLineup(ra),dB=rosLineup(nb)-rosLineup(rb);
+  const wkA=optimal(na,p=>p.wk).total-optimal(ra,p=>p.wk).total,wkB=optimal(nb,p=>p.wk).total-optimal(rb,p=>p.wk).total;
+  const val=ps=>ps.reduce((s,p)=>s+Math.max(0,p.vor)+p.rosAvg*.15,0);
+  // where would each team land in ROS strength
+  const ros=S.teams.map(t=>t.id===aId?rosLineup(na):t.id===bId?rosLineup(nb):rosLineup(rosterOf(t)));
+  const rankAfter=v=>[...ros].sort((x,y)=>y-x).indexOf(v)+1, before=S.teams.map(t=>rosLineup(rosterOf(t)));
+  const rankBefore=v=>[...before].sort((x,y)=>y-x).indexOf(v)+1;
+  const mv=ps=>ps.reduce((s,p)=>s+(p.tv||0),0);
+  return {A,B,give,get,dA,dB,wkA,wkB,valGive:val(give),valGet:val(get),mvGive:mv(give),mvGet:mv(get),
+    rA:[rankBefore(rosLineup(ra)),rankAfter(rosLineup(na))],rB:[rankBefore(rosLineup(rb)),rankAfter(rosLineup(nb))],
+    weeks:LAST_WEEK-S.week+1,extraA:Math.max(0,na.length-ra.length),extraB:Math.max(0,nb.length-rb.length)};
+}
+const tGrade=d=>d>=3?'A+':d>=1.5?'A':d>=.5?'B':d>=-.5?'C':d>=-2?'D':'F';
+function tradeFinder(){
+  const A=team(S.my); if(!A)return[];
+  const ra=rosterOf(A), baseA=rosLineup(ra), out=[];
+  const mine=[...ra].sort((a,b)=>b.rosAvg-a.rosAvg).slice(0,14).filter(p=>!['K','D/ST'].includes(p.pos));
+  for(const B of S.teams){if(B.id===A.id)continue;
+    const rb=rosterOf(B),baseB=rosLineup(rb),theirs=[...rb].sort((a,b)=>b.rosAvg-a.rosAvg).slice(0,14).filter(p=>!['K','D/ST'].includes(p.pos));
+    const tryIt=(g,r)=>{const gs=new Set(g.map(p=>p.id)),rs=new Set(r.map(p=>p.id));
+      const dA=rosLineup([...ra.filter(p=>!gs.has(p.id)),...r])-baseA, dB=rosLineup([...rb.filter(p=>!rs.has(p.id)),...g])-baseB;
+      if(dA>.4&&dB>.1)out.push({B,g,r,dA,dB,score:Math.min(dA,dB*1.5)+dA*.5})};
+    for(const g of mine)for(const r of theirs)tryIt([g],[r]);
+    for(let i=0;i<mine.length;i++)for(let j=i+1;j<mine.length;j++)for(const r of theirs)tryIt([mine[i],mine[j]],[r]);
+  }
+  out.sort((a,b)=>b.score-a.score);
+  const seen=new Set();return out.filter(o=>{const k=o.B.id+':'+o.r[0].id;if(seen.has(k))return false;seen.add(k);return true}).slice(0,12);
+}
+function pickList(t,set,side){
+  return `<div class="pick">${rosterOf(t).sort((a,b)=>b.rosAvg-a.rosAvg).map(p=>`<label><input type="checkbox" ${set.has(p.id)?'checked':''} onchange="toggleTrade('${side}',${p.id},this.checked)">${posTag(p.pos)} <span style="flex:1">${esc(p.name)}${injTag(p)}</span><span class="meta">${f1(p.rosAvg)}/wk</span></label>`).join('')}</div>`;
+}
+function toggleTrade(side,id,on){const s=S.trade[side==='a'?'ga':'gb'];on?s.add(id):s.delete(id);render()}
+function loadTrade(bId,g,r){S.trade={a:S.my,b:bId,ga:new Set(g),gb:new Set(r)};render();window.scrollTo(0,0)}
+function vTrade(){
+  const T=S.trade, A=team(T.a)||S.teams[0], B=team(T.b)||S.teams[1];
+  let result='';
+  if(T.ga.size||T.gb.size){
+    const r=evalTrade(A.id,B.id,T.ga,T.gb), gA=tGrade(r.dA), gB=tGrade(r.dB);
+    const verdict=r.dA>.3&&r.dB>.3?'Win-win trade':r.dA>.3&&r.dB<=-.3?`Favors ${esc(A.name)}`:r.dB>.3&&r.dA<=-.3?`Favors ${esc(B.name)}`:Math.abs(r.dA)<=.3&&Math.abs(r.dB)<=.3?'Roughly even':r.dA<0&&r.dB<0?'Bad for both sides':'Lopsided';
+    const side=(t,d,wk,rk,g,extra,gets)=>`<div class="card"><div class="row"><b style="flex:1">${esc(t.name)}</b>${gradeTag(g)}</div>
+      <div class="meta">Gets: ${gets.map(p=>esc(p.name)).join(', ')||'nothing'}</div>
+      <div class="big ${d>0?'pos-good':d<0?'neg':''}" style="margin-top:8px">${sgn(d)} <span class="meta">pts/wk in starting lineup</span></div>
+      <div class="meta">${sgn(d*r.weeks)} pts over the rest of the season · ${sgn(wk)} this week</div>
+      <div class="meta">ROS roster rank: #${rk[0]} → #${rk[1]}</div>
+      ${extra?`<div class="meta neg">Would need to drop ${extra} player${extra>1?'s':''} to fit roster.</div>`:''}</div>`;
+    result=`<div class="card" style="margin:16px 0 12px"><div class="meta">Verdict</div><div class="verdict">${verdict}</div>
+      ${r.mvGive||r.mvGet?`<div style="margin:6px 0"><b>FantasyCalc market value</b> (from thousands of real trades): ${esc(A.abbrev||A.name)} sends <b>${Math.round(r.mvGive).toLocaleString()}</b>, receives <b>${Math.round(r.mvGet).toLocaleString()}</b>
+        <span class="chip">${Math.abs(r.mvGet-r.mvGive)<Math.max(r.mvGet,r.mvGive)*.1?'Fair market price':r.mvGet>r.mvGive?`${esc(A.abbrev||A.name)} wins on value`:`${esc(B.abbrev||B.name)} wins on value`}</span></div>`:''}
+      <div class="meta">Projected value (above replacement): ${esc(A.abbrev||A.name)} sends ${f1(r.valGive)}, receives ${f1(r.valGet)}. Grades are based on how much each team's best starting lineup improves for the rest of the season — a deal can be fair in value but still help one side more because of roster fit.</div></div>
+      <div class="grid g2">${side(A,r.dA,r.wkA,r.rA,gA,r.extraA,r.get)}${side(B,r.dB,r.wkB,r.rB,gB,r.extraB,r.give)}</div>`;
+  }
+  const finder=S.showFinder?tradeFinder():null;
+  return `<h2>Trade Analyzer</h2><p class="sub">Pick what each side gives up. Each trade is scored by how much it changes each team's best starting lineup for the rest of the season (consensus projections, injury-adjusted), and checked against FantasyCalc market values.</p>
+  <div class="grid g2">
+   <div class="card"><label style="margin-top:0">Team A gives</label><select style="width:100%;margin-bottom:8px" onchange="S.trade.a=+this.value;S.trade.ga=new Set();render()">${S.teams.map(t=>`<option value="${t.id}" ${t.id===A.id?'selected':''} ${t.id===B.id?'disabled':''}>${esc(t.name)}</option>`).join('')}</select>${pickList(A,T.ga,'a')}</div>
+   <div class="card"><label style="margin-top:0">Team B gives</label><select style="width:100%;margin-bottom:8px" onchange="S.trade.b=+this.value;S.trade.gb=new Set();render()">${S.teams.map(t=>`<option value="${t.id}" ${t.id===B.id?'selected':''} ${t.id===A.id?'disabled':''}>${esc(t.name)}</option>`).join('')}</select>${pickList(B,T.gb,'b')}</div>
+  </div>
+  ${result||'<p class="sub" style="margin-top:14px">Check players on both sides to see the analysis.</p>'}
+  <div class="card" style="margin-top:18px"><div class="row"><div style="flex:1"><b>Trade finder</b><div class="meta">Searches 1-for-1 and 2-for-1 deals between ${esc(team(S.my)?.name||'your team')} and every other team where both lineups improve.</div></div>
+   <button class="btn primary" onclick="S.showFinder=1;render()">${finder?'Refresh':'Find trades'}</button></div>
+   ${finder?(finder.length?`<div class="tbl-wrap" style="margin-top:12px"><table><thead><tr><th>Partner</th><th>You give</th><th>You get</th><th class="num">Your gain/wk</th><th class="num">Their gain/wk</th><th class="num">Market value +/-</th><th></th></tr></thead><tbody>
+   ${finder.map(o=>{const mv=o.r.reduce((s,p)=>s+(p.tv||0),0)-o.g.reduce((s,p)=>s+(p.tv||0),0);return `<tr><td>${esc(o.B.name)}</td><td>${o.g.map(p=>posTag(p.pos)+' '+esc(p.name)).join('<br>')}</td><td>${o.r.map(p=>posTag(p.pos)+' '+esc(p.name)).join('<br>')}</td><td class="num pos-good">${sgn(o.dA)}</td><td class="num pos-good">${sgn(o.dB)}</td><td class="num ${mv>0?'pos-good':mv<0?'neg':''}">${mv?(mv>0?'+':'')+Math.round(mv).toLocaleString():'—'}</td>
+   <td><button class="btn" onclick='loadTrade(${o.B.id},${JSON.stringify(o.g.map(p=>p.id))},${JSON.stringify(o.r.map(p=>p.id))})'>Analyze</button></td></tr>`}).join('')}</tbody></table></div>`:'<p class="meta">No mutually beneficial trades found right now.</p>'):''}
+  </div>`;
+}
+
+/* start / sit */
+function sitReason(p,w){
+  const I=S.inj.get(p.skey);
+  if(I&&injFactor(p,w)===0)return `${INJ_LABEL[I.code]}${I.back?` — expected back week ${I.back}`:''}`;
+  if(espnProj(p,w)===0&&slpProj(p,w)==null&&cbsProj(p,w)==null)return 'Bye week / not playing';
+  if(I)return `${INJ_LABEL[I.code]} — projection discounted`;
+  return 'Lower projection than your starters';
+}
+function vStartSit(){
+  const t=team(S.ssTeam||S.my)||S.teams[0], w=S.week, ro=rosterOf(t), o=optimal(ro,p=>proj(p,w));
+  const cur=ro.filter(p=>p.slotNow!=null&&![20,21].includes(p.slotNow)), hasCur=cur.length>0;
+  const curIds=new Set(cur.map(p=>p.id)), recIds=new Set(o.lineup.filter(l=>l.p).map(l=>l.p.id));
+  const curTotal=cur.reduce((s,p)=>s+proj(p,w),0);
+  const ins=o.lineup.filter(l=>l.p&&!curIds.has(l.p.id)).map(l=>l.p).sort((a,b)=>proj(b,w)-proj(a,w));
+  const outs=cur.filter(p=>!recIds.has(p.id)).sort((a,b)=>proj(a,w)-proj(b,w));
+  const rows=o.lineup.map(l=>{
+    if(!l.p)return{l};
+    const alt=o.bench.filter(b=>b.slots.includes(l.slot)).sort((a,b)=>proj(b,w)-proj(a,w))[0];
+    const margin=alt?l.v-proj(alt,w):99, [lo,hi]=srcRange(l.p,w), I=S.inj.get(l.p.skey);
+    let call=margin<1?['Coin flip','gC']:margin<3?['Lean start','gB']:['Must start','gA'];
+    return{l,alt,margin,lo,hi,call,I};
+  });
+  const fp=p=>S.fp.wk.get(p.skey);
+  return `<h2>Start / Sit</h2><p class="sub">Week ${w} lineup advice from the consensus of ESPN, Sleeper, CBS and FantasyPros, adjusted for the cross-referenced injury report. "Coin flip" means the best bench option is within 1 point — check the Low–High spread and the news before kickoff.</p>
+  <div class="row" style="margin-bottom:14px"><select onchange="S.ssTeam=+this.value;render()">${S.teams.map(x=>`<option value="${x.id}" ${x.id===t.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div>
+  <div class="grid g3" style="margin-bottom:14px">
+    <div class="card"><div class="meta">Recommended lineup</div><div class="big">${f1(o.total)} pts</div>
+      ${hasCur?`<div class="meta">Your current ESPN lineup: ${f1(curTotal)} pts · <b class="${o.total-curTotal>0.05?'pos-good':''}">${o.total-curTotal>0.05?sgn(o.total-curTotal)+' available':'already optimal'}</b></div>`:`<div class="meta">${S.demo?'Demo league has no saved lineup to compare.':'No current lineup found.'}</div>`}</div>
+    <div class="card" style="grid-column:span 2"><div class="meta">Changes to make</div>
+      ${hasCur?(ins.length?ins.map((p,i)=>`<div style="margin-top:4px">✅ <b>Start</b> ${posTag(p.pos)} ${esc(p.name)} (${f1(proj(p,w))})${outs[i]?` &nbsp;❌ <b>Sit</b> ${esc(outs[i].name)} (${f1(proj(outs[i],w))}) — <span class="meta">${esc(sitReason(outs[i],w))}</span>`:''}</div>`).join(''):'<div class="pos-good" style="margin-top:4px">Your lineup is already the best one available.</div>')
+      :'<div class="meta" style="margin-top:4px">Set this lineup in ESPN using the table below.</div>'}</div>
+  </div>
+  <div class="tbl-wrap" style="margin-bottom:16px"><table><thead><tr><th>Slot</th><th>Start</th><th>Opp</th><th class="num">Proj</th><th>Low–High</th><th class="num">Sites</th><th>FP grade</th><th>FP rank</th><th>Call</th><th>Next best option</th></tr></thead><tbody>
+  ${rows.map(r=>!r.l.p?`<tr><td><span class="chip">${SLOT[r.l.slot]}</span></td><td colspan="9" class="meta">No eligible player — add one from Pickups</td></tr>`:
+    `<tr><td><span class="chip">${SLOT[r.l.slot]}</span></td><td>${posTag(r.l.p.pos)} <b>${esc(r.l.p.name)}</b>${injTag(r.l.p)}</td><td>${esc(opp(r.l.p,w))}</td><td class="num"><b>${f1(r.l.v)}</b></td><td class="meta">${f1(r.lo)}–${f1(r.hi)}</td><td class="num">${nSrc(r.l.p,w)}/4</td>
+     <td>${fp(r.l.p)?.grade&&fp(r.l.p).grade!=='NA'?gradeTag(fp(r.l.p).grade):'—'}</td><td>${esc(fp(r.l.p)?.posRank||'—')}</td>
+     <td><span class="grade ${r.call[1]}" style="width:auto;padding:2px 8px">${r.call[0]}</span>${r.I&&r.I.code==='QUESTIONABLE'?' <span class="chip">monitor injury</span>':''}</td>
+     <td class="meta">${r.alt?`${esc(r.alt.name)} (${f1(proj(r.alt,w))}, ${r.margin<99?sgn(-r.margin):''})`:'—'}</td></tr>`).join('')}
+  </tbody></table></div>
+  <h3 style="margin:0 0 8px;font-size:15px">Sit</h3>
+  <div class="tbl-wrap"><table><thead><tr><th>Player</th><th>NFL</th><th>Opp</th><th class="num">Proj</th><th>Low–High</th><th>Why</th></tr></thead><tbody>
+  ${o.bench.sort((a,b)=>proj(b,w)-proj(a,w)).map(p=>`<tr><td>${posTag(p.pos)} ${esc(p.name)}${injTag(p)}</td><td>${p.nfl}</td><td>${esc(opp(p,w))}</td><td class="num">${f1(proj(p,w))}</td><td class="meta">${srcRange(p,w).map(f1).join('–')}</td><td class="meta">${esc(sitReason(p,w))}</td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+
+/* injury report */
+function stCell(x,label){
+  if(!x)return '<td class="meta">—</td>';
+  const c=x.code||'ACTIVE', txt=label||INJ_LABEL[c]||x.status;
+  return `<td><span class="st st-${c}" title="${esc(x.status||txt)}">${esc(txt)}</span></td>`;
+}
+function vInjuries(){
+  const f=S.injFilter||'rost', pos=S.injPos||'ALL', w=S.week;
+  let list=[...S.inj.values()].filter(i=>pos==='ALL'||i.p.pos===pos);
+  if(f==='mine')list=list.filter(i=>i.p.teamId===S.my);else if(f==='rost')list=list.filter(i=>i.p.teamId);
+  list.sort((a,b)=>(b.p.teamId===S.my)-(a.p.teamId===S.my)||b.p.seasonProj-a.p.seasonProj);
+  const mine=[...S.inj.values()].filter(i=>i.p.teamId===S.my), outNow=mine.filter(i=>injFactor(i.p,w)===0);
+  const onBye=p=>espnProj(p,w)===0&&slpProj(p,w)==null&&cbsProj(p,w)==null;
+  const backTxt=i=>{
+    if((i.code==='QUESTIONABLE'||i.code==='DOUBTFUL')&&onBye(i.p))return `On bye wk ${w}`;
+    if(i.code==='QUESTIONABLE'||i.code==='DOUBTFUL')return `Game-time decision, wk ${w}`;
+    const b=[];if(i.backs.espn>w)b.push(`Wk ${i.backs.espn} (ESPN)`);if(i.backs.cbs>w)b.push(`Wk ${i.backs.cbs} (CBS)`);
+    return b.length?b.join(' · '):i.code==='OUT'?`Wk ${i.back} (est.)`:'No timetable'};
+  if(!S.injRaw)return `<h2>Injury Report</h2><div class="notice err">Couldn't load injury reports. Reload to try again.</div>`;
+  return `<h2>Injury Report</h2><p class="sub">Cross-referenced from ESPN injury news, the CBS Sports injury report, Sleeper's injury feed and your ESPN Fantasy league. "Consensus" is the majority status (ties go to the more serious one). Expected return weeks come from ESPN's return dates and CBS's estimates; projections everywhere in the app treat players as unavailable until then.</p>
+  <div class="grid g3" style="margin-bottom:14px">
+    <div class="card"><div class="meta">Injured on ${esc(team(S.my)?.name||'your team')}</div><div class="big">${mine.length}</div><div class="meta">${outNow.length} unavailable in week ${w}${outNow.length?': '+outNow.map(i=>esc(i.p.name)).join(', '):''}</div></div>
+    <div class="card"><div class="meta">Sources disagree on</div><div class="big">${[...S.inj.values()].filter(i=>!i.agree&&i.p.teamId).length}</div><div class="meta">rostered players — check the news before lineups lock</div></div>
+    <div class="card"><div class="meta">Reports loaded</div><div class="meta" style="margin-top:4px">ESPN ${S.injRaw.espn.length} · CBS ${S.injRaw.cbs.length} · Sleeper ${S.injRaw.sleeper.length}</div></div>
+  </div>
+  <div class="row" style="margin-bottom:10px"><div class="tabs" style="margin:0">${['ALL',...POSLIST.filter(p=>p!=='D/ST')].map(p=>`<button class="${pos===p?'on':''}" onclick="S.injPos='${p}';render()">${p}</button>`).join('')}</div><div class="spacer"></div>
+    <select onchange="S.injFilter=this.value;render()"><option value="mine" ${f==='mine'?'selected':''}>My team</option><option value="rost" ${f==='rost'?'selected':''}>All rostered in league</option><option value="all" ${f==='all'?'selected':''}>All fantasy players</option></select></div>
+  <div class="tbl-wrap"><table><thead><tr><th>Player</th><th>NFL</th><th>Fantasy team</th><th>Consensus</th><th>Sources</th><th>ESPN Fantasy</th><th>ESPN</th><th>CBS</th><th>Sleeper</th><th>Injury</th><th>Practice</th><th>Expected back</th><th class="num">Wk ${w} proj</th><th>Latest news</th></tr></thead><tbody>
+  ${list.map(i=>`<tr${i.p.teamId===S.my?' style="background:color-mix(in srgb,var(--accent) 7%,transparent)"':''}><td>${posTag(i.p.pos)} <b>${esc(i.p.name)}</b></td><td>${i.p.nfl}</td><td>${esc(i.p.teamId?team(i.p.teamId)?.name:'Free agent')}</td>
+    ${stCell({code:i.code})}<td>${i.agree?`<span class="pos-good" title="All ${i.nSrc} reporting sources agree">✓ ${i.nSrc} agree</span>`:`<span class="neg" title="Sources report different statuses">⚠ differ</span>`}</td>
+    ${stCell(i.srcs.fan)}${stCell(i.srcs.espn)}${stCell(i.srcs.cbs)}${stCell(i.srcs.slp)}
+    <td>${esc(i.injury||'—')}</td><td class="meta">${esc(i.practice||'—')}</td><td>${backTxt(i)}</td><td class="num">${f1(proj(i.p,w))}</td>
+    <td class="meta" style="white-space:normal;min-width:300px"><div class="news" title="${esc(i.note||'')}">${i.noteDate?`<span class="chip">${new Date(i.noteDate).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</span> `:''}${esc(i.note||'—')}</div></td></tr>`).join('')||'<tr><td colspan="14" class="meta">No injured players here.</td></tr>'}
+  </tbody></table></div>`;
+}
+
+/* settings */
+function vSettings(){
+  return `<h2>League settings</h2><p class="sub">Connect your ESPN league. Everything stays on this computer — the app talks to each site through the small local server.</p>
+  <div class="grid g2"><div class="card">
+    <label style="margin-top:0">ESPN league ID</label><input id="lid" placeholder="e.g. 12345678" value="${esc(store.get('leagueId',''))}">
+    <div class="meta">In your league's URL: fantasy.espn.com/football/league?leagueId=<b>12345678</b></div>
+    <label>Season</label><input id="season" value="${esc(store.get('season',2026))}">
+    <details style="margin-top:14px"><summary>Private league? Add your ESPN cookies</summary>
+      <label>espn_s2</label><input id="s2" type="password" value="${esc(store.get('s2',''))}">
+      <label>SWID</label><input id="swid" type="password" value="${esc(store.get('swid',''))}">
+      <div class="meta" style="margin-top:6px">Find them in Chrome while logged in to ESPN Fantasy: View → Developer → Developer Tools → Application → Cookies → espn.com. They're saved only in this browser.</div>
+    </details>
+    <div class="row" style="margin-top:16px"><button class="btn primary" onclick="saveSettings()">Connect league</button><button class="btn" onclick="store.set('leagueId','');loadLeague()">Use demo league</button></div>
+  </div>
+  <div class="card"><b>Where the numbers come from</b>
+    <ul class="meta" style="padding-left:18px">
+      <li><b>ESPN</b>: your league's rosters, records, scoring and lineup settings; ESPN's weekly and rest-of-season projections (scored with your league's rules); ESPN analysts' weekly position rankings.</li>
+      <li><b>Sleeper</b>: independent weekly projections (matched to your scoring format), injury status + practice reports, and trending adds.</li>
+      <li><b>CBS Sports</b>: weekly projected stat lines, re-scored with your league's rules; injury report with expected return weeks.</li>
+      <li><b>FantasyPros</b>: expert consensus rankings (weekly and rest of season), start/sit grades and projections, via the open DynastyProcess data set. Projections are PPR, so they're only blended in for PPR leagues.</li>
+      <li><b>FantasyCalc</b>: trade market values built from real fantasy trades.</li>
+      <li><b>ESPN injury news</b>: status, return dates and the latest notes.</li>
+      <li><b>Consensus</b> projection = average of every site that has the player, then adjusted for injury status.</li>
+      <li>Data refreshes every 10 minutes (Sleeper's player file every 6 hours); reload the page to pull new numbers.</li>
+    </ul>
+    <b>Loaded right now</b>
+    <div class="meta" style="margin-top:4px">${Object.entries(S.status).map(([k,v])=>`${esc(k)}: <b class="${v?'':'neg'}">${v?v.toLocaleString():'unavailable'}</b>`).join('<br>')}${S.fpDate?`<br>FantasyPros updated ${esc(S.fpDate)}`:''}</div>
+    </div></div>`;
+}
+function saveSettings(){
+  store.set('leagueId',$('#lid').value.trim().replace(/\D/g,''));store.set('season',+$('#season').value||2026);
+  const s2=$('#s2')?.value.trim(),sw=$('#swid')?.value.trim();store.set('s2',s2||'');store.set('swid',sw||'');
+  S.view='power';loadLeague();
+}
+loadLeague();
+</script>
+</body>
+</html>
